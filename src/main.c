@@ -23,13 +23,13 @@ void print_welcome_message() {
 	srand(time(NULL));
 
 	while (1) {
-		c = "qwertyuiopasdfghjklzxcvbnmWelcome to prosh [Version 0.01]"[rand() % 57];
+		c = "qwertyuiopasdfghjklzxcvbnmWelcome to prosh [Version 0.01]QWERTYUIOPASDFGHJKL"[rand() % 76];
 		printf("%c", c);
 
 		if (c == welcome_message[index]) {
 			index++;
 		} else {
-			usleep(2500);
+			usleep(1000);
 			printf("\b");
 			fflush(stdout);
 		}
