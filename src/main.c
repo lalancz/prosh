@@ -4,11 +4,13 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 
 #define MAX_LEN 100
 #define MAX_HISTORY_LEN 10
+#define MAX_ARGUMENTS 10
 
 // compile command needs -lreadline flag (gcc main.c -lreadline)
 
@@ -36,7 +38,7 @@ void print_welcome_message() {
 		}
 
 		if (index == 31) {
-			printf("\n");
+			printf("\n\n");
 			return;
 		}
 	}
@@ -49,6 +51,8 @@ int get_command_id(char* command_string) {
 		return 1;
 	} else if (strcmp(command, "ls") == 0) {
 		return 2;
+	} else {
+		return -1;
 	}
 }
 
@@ -61,6 +65,8 @@ void change_directory(char* argument) {
 		if (result_code != 0)
 			printf("Could not change directory to %s\n", argument);
 	}
+
+	printf("\n");
 }
 
 void list_directory(char* argument) {
@@ -69,7 +75,7 @@ void list_directory(char* argument) {
 	int result_code = scandir(argument, &list_of_files, NULL, alphasort);
 
 	if (result_code < 0) {
-		printf("Could not list files at %s\n", argument);
+		printf("Could not list files at %s\n\n", argument);
 	} else {
 		printf("\nDirectory of %s\n\n", argument);
 
@@ -83,8 +89,18 @@ void list_directory(char* argument) {
 	}
 }
 
-void execute_file() {
+void execute_file(char* argument, char** list_of_arguments) {
+	if (fork() == 0) {
+		int result_code = execvp(argument, list_of_arguments);
 
+		if (result_code < 0) {
+			printf("Execution of %s failed\n\n", argument);
+		}
+	} else {
+		wait(NULL);
+	}
+
+	printf("\n");
 }
 
 int main()
@@ -102,9 +118,8 @@ int main()
 	while (1)
 	{
 		getcwd(cwd, MAX_LEN);
-		printf("%s", cwd);
 
-		input_buffer = readline(">");
+		input_buffer = readline(strcat(cwd, ">"));
 
 		if (strlen(input_buffer) != 0)
 		{
@@ -127,8 +142,26 @@ int main()
 					}
 					break;
 				default:
+					argument = strtok(NULL, " ");
 
+					char *list_of_arguments[MAX_ARGUMENTS];
+					int index = 0;
 
+					while (argument != NULL) {
+						if (index > MAX_ARGUMENTS) {
+							printf("Maximum amount of arguments reached\n\n");
+							break;
+						}
+
+						list_of_arguments[index++] = argument;
+
+						argument = strtok(NULL, " ");
+					}
+
+					list_of_arguments[index] = NULL;
+
+					execute_file(input_buffer, list_of_arguments);
+					break;
 			}
 		}
 	}
