@@ -1,3 +1,4 @@
+#include <dirent.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,8 +63,24 @@ void change_directory(char* argument) {
 	}
 }
 
-void list_directory() {
+void list_directory(char* argument) {
+	struct dirent **list_of_files;
 
+	int result_code = scandir(argument, &list_of_files, NULL, alphasort);
+
+	if (result_code < 0) {
+		printf("Could not list files at %s\n", argument);
+	} else {
+		printf("\nDirectory of %s\n\n", argument);
+
+		while (result_code--) {
+			printf("%d. %s\n", result_code, list_of_files[result_code]->d_name);
+			free(list_of_files[result_code]);
+		}
+
+		free(list_of_files);
+		printf("\n");
+	}
 }
 
 void execute_file() {
@@ -101,7 +118,14 @@ int main()
 					change_directory(argument);
 					break;
 				case 2:
+					argument = strtok(NULL, " ");
 
+					if (argument == NULL) {
+						list_directory(".");
+					} else {
+						list_directory(argument);
+					}
+					break;
 				default:
 
 
