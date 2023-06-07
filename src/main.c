@@ -17,6 +17,8 @@
 char history[MAX_HISTORY_LEN][MAX_LEN];
 char *input_buffer;
 
+enum Commands {CD, LS, EXEC};
+
 void print_welcome_message()
 {
 	char welcome_message[] = "Welcome to prosh [Version 0.01]";
@@ -56,15 +58,15 @@ int get_command_id(char *command_string)
 
 	if (strcmp(command, "cd") == 0)
 	{
-		return 1;
+		return CD;
 	}
 	else if (strcmp(command, "ls") == 0)
 	{
-		return 2;
+		return LS;
 	}
 	else
 	{
-		return -1;
+		return EXEC;
 	}
 }
 
@@ -159,11 +161,11 @@ int main()
 
 			switch (command_id)
 			{
-			case 1:
+			case CD:
 				argument = strtok(NULL, " ");
 				change_directory(argument);
 				break;
-			case 2:
+			case LS:
 				argument = strtok(NULL, " ");
 
 				if (argument == NULL)
