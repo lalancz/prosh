@@ -3,68 +3,81 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+#include <pthread.h>
+#include <stdlib.h>
 
-int start_productivity_mode(int minutes);
+pthread_t *start_productivity_mode(int minutes);
 int exit_productivity_mode();
-int exit_productivity_mode_early();
 void show_status();
-void sig_handler(int signum);
+void *pmode_thread(void *input);
 
 char error_message[100];
-int productivity_mode_running = 0;
-time_t productivity_mode_start_time = 0;
+pthread_t pmode_thread_id;
 
-int start_productivity_mode(int minutes) {
-	if (productivity_mode_running == 1) {
+struct args {
+	int productivity_mode_running;
+	time_t productivity_mode_start_time;
+	int productivity_mode_duration;
+};
+
+struct args *pmode_args;
+
+pthread_t *start_productivity_mode(int minutes) {
+	if (pmode_args == NULL) {
+		pmode_args = (struct args *) malloc(sizeof(struct args));
+	}
+
+	if (pmode_args->productivity_mode_running == 1) {
 		strcpy(error_message, "Productivity mode already on.\n");
-		return 1;
+		return NULL;
 	} else {
-		productivity_mode_running = 1;
-		time(&productivity_mode_start_time);
 		strcpy(error_message, "");
-		signal(SIGALRM, sig_handler);
-		alarm(minutes * 60);
-		// TODO enable restrictions
-		return 0;
+		pmode_args->productivity_mode_running = 1;
+		time(&pmode_args->productivity_mode_start_time);
+		pmode_args->productivity_mode_duration = minutes;
+		
+		if (pthread_create(&pmode_thread_id, NULL, pmode_thread, (void *)pmode_args) != 0) {
+			strcpy(error_message, "Productivity mode could not be activated.\n");
+			return NULL;
+		}
+		
+		return &pmode_thread_id;
 	}
 }
 
-void sig_handler(int signum) {
-	int error = exit_productivity_mode();
-	if (error == 1) {
-		printf("%s", error_message);
-	} else {
-		printf("Productivity mode deactivated.\n");
+void *pmode_thread(void *input) {
+	time_t now;
+	while (((struct args *)input)->productivity_mode_running == 1) {
+		printf("Productivity mode running...\n");
+		// TODO kill processes
+		sleep(1);
+		time(&now);
+		if (difftime(now, ((struct args *)input)->productivity_mode_start_time) > ((struct args *)input)->productivity_mode_duration) {
+			((struct args *)input)->productivity_mode_running = 0;
+		}
 	}
 }
 
 int exit_productivity_mode() {
-	if (productivity_mode_running == 0) {
-		strcpy(error_message, "Productivity mode not running.\n");
-		return 1;
-	} else {
-		alarm(0); // Cancel the alarm.
-		productivity_mode_running = 0;
-		strcpy(error_message, "");
-		// TODO disable restrictions
-		return 0;
+	// TODO check if user has permissions
+	if (pmode_args != NULL) {
+		pmode_args->productivity_mode_running = 0;	
 	}
 }
 
-int exit_productivity_mode_early() {
-	// TODO check if user has permissions
-	return exit_productivity_mode();
-}
-
 void show_status() {
-	if (productivity_mode_running == 1) {
+	if (pmode_args != NULL && pmode_args->productivity_mode_running == 1) {
 		char time_str[50];
-		strftime(time_str, 50, "%Y-%m-%d %H:%M", localtime(&productivity_mode_start_time));
+		char remaining_time_str[20];
+		time_t now;
+		strftime(time_str, 50, "%Y-%m-%d %H:%M", localtime(&pmode_args->productivity_mode_start_time));
+		time(&now);
 	
 		printf("Productivity mode running: yes\n");
 		printf("Started at: %s\n", time_str);
-		printf("Remaining time: ?\n");
+		printf("Remaining time: %d seconds\n", (int)difftime(now, pmode_args->productivity_mode_start_time));
 	} else {
 		printf("Productivity mode running: no\n");
 	}
 }
+
