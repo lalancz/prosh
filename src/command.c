@@ -5,11 +5,15 @@
 #include <time.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/Xos.h>
 
 pthread_t *start_productivity_mode(int minutes);
 int exit_productivity_mode();
 void show_status();
 void *pmode_thread(void *input);
+void kill_blocked_processes();
 
 char error_message[100];
 pthread_t pmode_thread_id;
@@ -46,16 +50,39 @@ pthread_t *start_productivity_mode(int minutes) {
 }
 
 void *pmode_thread(void *input) {
+	struct args *thread_args = (struct args *)input;
+	
 	time_t now;
-	while (((struct args *)input)->productivity_mode_running == 1) {
-		printf("Productivity mode running...\n");
-		// TODO kill processes
-		sleep(1);
+	XEvent e;
+	Display *display = XOpenDisplay(NULL);
+	XSelectInput(display, DefaultRootWindow(display), SubstructureNotifyMask);
+	
+	kill_blocked_processes();
+
+	while (thread_args->productivity_mode_running == 1) {
+		if (XPending(display) > 0) {
+			XNextEvent(display, &e);
+			if (e.type == CreateNotify) {
+				kill_blocked_processes();
+			}
+		}
+
 		time(&now);
-		if (difftime(now, ((struct args *)input)->productivity_mode_start_time) > ((struct args *)input)->productivity_mode_duration) {
-			((struct args *)input)->productivity_mode_running = 0;
+		if (difftime(now, thread_args->productivity_mode_start_time) > thread_args->productivity_mode_duration) {
+			thread_args->productivity_mode_running = 0;
 		}
 	}
+}
+
+void kill_blocked_processes() {
+	clock_t begin = clock();
+
+	system("pkill -15 mines");
+	system("pkill -15 mahjongg");
+
+	clock_t end = clock();
+	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+	printf("Blocked processes killed (in %f s)\n", time_spent);
 }
 
 int exit_productivity_mode() {
@@ -79,5 +106,31 @@ void show_status() {
 	} else {
 		printf("Productivity mode running: no\n");
 	}
+}
+
+// TODO remove main method after testing finished
+int main() {
+	printf("Started\n");
+	
+	show_status();
+	
+	pthread_t *thid = start_productivity_mode(8);
+	if (thid == NULL) {
+		printf("%s", error_message);
+	} else {
+		printf("Productivity mode activated.\n");
+	}
+	
+	for (int i = 0; i < 4; i++) {
+		sleep(1);
+	}
+	
+	// exit_productivity_mode();
+	
+	pthread_join(*thid, NULL);
+		
+	printf("Productivity mode deactivated.\n");
+	
+	return 0;
 }
 
