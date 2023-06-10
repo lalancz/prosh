@@ -5,6 +5,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xos.h>
@@ -19,7 +20,7 @@ char error_message[100];
 pthread_t pmode_thread_id;
 
 struct args {
-	int productivity_mode_running;
+	bool productivity_mode_running;
 	time_t productivity_mode_start_time;
 	int productivity_mode_duration;
 };
@@ -31,12 +32,12 @@ pthread_t *start_productivity_mode(int minutes) {
 		pmode_args = (struct args *) malloc(sizeof(struct args));
 	}
 
-	if (pmode_args->productivity_mode_running == 1) {
+	if (pmode_args->productivity_mode_running) {
 		strcpy(error_message, "Productivity mode already on.\n");
 		return NULL;
 	} else {
 		strcpy(error_message, "");
-		pmode_args->productivity_mode_running = 1;
+		pmode_args->productivity_mode_running = true;
 		time(&pmode_args->productivity_mode_start_time);
 		pmode_args->productivity_mode_duration = minutes;
 		
@@ -59,7 +60,7 @@ void *pmode_thread(void *input) {
 	
 	kill_blocked_processes();
 
-	while (thread_args->productivity_mode_running == 1) {
+	while (thread_args->productivity_mode_running) {
 		if (XPending(display) > 0) {
 			XNextEvent(display, &e);
 			if (e.type == CreateNotify) {
@@ -69,7 +70,7 @@ void *pmode_thread(void *input) {
 
 		time(&now);
 		if (difftime(now, thread_args->productivity_mode_start_time) > thread_args->productivity_mode_duration) {
-			thread_args->productivity_mode_running = 0;
+			thread_args->productivity_mode_running = false;
 		}
 	}
 }
@@ -88,12 +89,12 @@ void kill_blocked_processes() {
 int exit_productivity_mode() {
 	// TODO check if user has permissions
 	if (pmode_args != NULL) {
-		pmode_args->productivity_mode_running = 0;	
+		pmode_args->productivity_mode_running = false;	
 	}
 }
 
 void show_status() {
-	if (pmode_args != NULL && pmode_args->productivity_mode_running == 1) {
+	if (pmode_args != NULL && pmode_args->productivity_mode_running) {
 		char time_str[50];
 		char remaining_time_str[20];
 		time_t now;
