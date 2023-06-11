@@ -23,6 +23,7 @@ void kill_blocked_processes();
 int block_domains();
 int unblock_domains();
 void print_error_message(char *message, int code);
+bool is_browser_running();
 
 char error_message[100];
 pthread_t pmode_thread_id;
@@ -43,19 +44,24 @@ pthread_t *start_productivity_mode(int minutes) {
 	if (pmode_args->productivity_mode_running) {
 		strcpy(error_message, "Productivity mode already on.\n");
 		return NULL;
-	} else {
-		strcpy(error_message, "");
-		pmode_args->productivity_mode_running = true;
-		time(&pmode_args->productivity_mode_start_time);
-		pmode_args->productivity_mode_duration = minutes;
-		
-		if (pthread_create(&pmode_thread_id, NULL, pmode_thread, (void *)pmode_args) != 0) {
-			strcpy(error_message, "Productivity mode could not be activated.\n");
-			return NULL;
-		}
-		
-		return &pmode_thread_id;
 	}
+	
+	if (is_browser_running()) {
+		strcpy(error_message, "Please close all browsers before starting the producitivity mode.\n");
+		return NULL;
+	}
+	
+	strcpy(error_message, "");
+	pmode_args->productivity_mode_running = true;
+	time(&pmode_args->productivity_mode_start_time);
+	pmode_args->productivity_mode_duration = minutes;
+	
+	if (pthread_create(&pmode_thread_id, NULL, pmode_thread, (void *)pmode_args) != 0) {
+		strcpy(error_message, "Productivity mode could not be activated.\n");
+		return NULL;
+	}
+	
+	return &pmode_thread_id;
 }
 
 void *pmode_thread(void *input) {
@@ -65,12 +71,22 @@ void *pmode_thread(void *input) {
 	XEvent e;
 	Display *display = XOpenDisplay(NULL);
 	XSelectInput(display, DefaultRootWindow(display), SubstructureNotifyMask);
+	int error;
+	
+	if (access(HOSTS_FILE_COPY, F_OK) == 0) {
+		error = unblock_domains();
+		if (error != 0) {
+			print_error_message("Blocked domains from last run could not be cleaned.", error);
+			return NULL;
+		}
+	}
 	
 	kill_blocked_processes();
-	int error = block_domains();
+	error = block_domains();
 	if (error != 0) {
 		print_error_message("Blocking domains failed.", error);
 		thread_args->productivity_mode_running = false;
+		return NULL;
 	}
 
 	while (thread_args->productivity_mode_running) {
@@ -83,11 +99,7 @@ void *pmode_thread(void *input) {
 
 		time(&now);
 		if (difftime(now, thread_args->productivity_mode_start_time) > thread_args->productivity_mode_duration) {
-			thread_args->productivity_mode_running = false;
-			error = unblock_domains();
-			if (error != 0) {
-				print_error_message("Unblocking domains failed.", error);
-			}
+			exit_productivity_mode();
 		}
 	}
 }
@@ -100,6 +112,18 @@ void print_error_message(char *message, int code) {
 			default: printf("%s Error code: %d\n", message, code); break;
 		}
 	}
+}
+
+bool is_browser_running() {
+	FILE *command = popen("pgrep 'firefox|chrome'", "r");
+	if (!command) {
+		return false;
+	}
+	
+	int ch = fgetc(command);
+	fclose(command);
+	
+	return ch > 0;
 }
 
 void kill_blocked_processes() {
@@ -133,9 +157,9 @@ int block_domains() {
 		iteration++;
 	}
 	
-	fputs("127.0.0.1 youtube.com\n", original_hosts_file);
-	fputs("127.0.0.1 twitter.com\n", original_hosts_file);
-	fputs("127.0.0.1 facebook.com\n", original_hosts_file);
+	fputs("127.0.0.1 youtube.com www.youtube.com\n", original_hosts_file);
+	fputs("127.0.0.1 twitter.com www.twitter.com\n", original_hosts_file);
+	fputs("127.0.0.1 facebook.com www.facebook.com\n\n", original_hosts_file);
 	
 	fclose(original_hosts_file);
 	fclose(hosts_file_copy);
@@ -158,7 +182,11 @@ int unblock_domains() {
 int exit_productivity_mode() {
 	// TODO check if user has permissions
 	if (pmode_args != NULL) {
-		pmode_args->productivity_mode_running = false;	
+		pmode_args->productivity_mode_running = false;
+		int error = unblock_domains();
+		if (error != 0) {
+			print_error_message("Unblocking domains failed.", error);
+		}
 	}
 }
 
@@ -180,22 +208,23 @@ void show_status() {
 
 // TODO remove main method after testing finished
 int main() {
-	printf("Started\n");
-	
 	show_status();
 	
-	pthread_t *thid = start_productivity_mode(30);
-	if (thid == NULL) {
+	pthread_t *thid = start_productivity_mode(8);
+	if (!thid) {
 		printf("%s", error_message);
-	} else {
-		printf("Productivity mode activated.\n");
+		return -1;
 	}
 	
-	// exit_productivity_mode();
+	/*
+	for(int i = 0; i < 4; i++) {
+		sleep(1);
+	}
+	
+	exit_productivity_mode();
+	*/
 	
 	pthread_join(*thid, NULL);
-		
-	printf("Productivity mode deactivated.\n");
 	
 	return 0;
 }
