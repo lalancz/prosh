@@ -15,7 +15,7 @@
 #define MAX_ARGUMENTS 10
 #define MAX_ERROR_LEN 100
 
-// compile command needs -lreadline flag (gcc main.c -lreadline)
+// compile command needs -lreadline and -lX11 flag (gcc main.c -lreadline -lX11)
 
 char history[MAX_HISTORY_LEN][MAX_LEN];
 char *input_buffer;
@@ -38,6 +38,7 @@ enum ProshCommands
 	LIST
 };
 
+// progressively guess letter until message is printed
 void print_welcome_message()
 {
 	char welcome_message[] = "Welcome to prosh [Version 0.01]";
@@ -49,7 +50,7 @@ void print_welcome_message()
 
 	while (1)
 	{
-		c = "qwertyuiopasdfghjklzxcvbnmWelcome to prosh [Version 0.01]QWERTYUIOPASDFGHJKL"[rand() % 76];
+		c = "qwertyuiopasdfghjklzxcvbnmWelcome to prosh [Version 0.01]QWERTYUIOPASDFGHJKL"[rand() % 76]; // pick random symbol
 		printf("%c", c);
 
 		if (c == welcome_message[index])
@@ -127,6 +128,7 @@ int get_command_id(char *command_string)
 	}
 }
 
+// use chdir command
 void change_directory(char *argument)
 {
 	if (argument == NULL)
@@ -144,6 +146,7 @@ void change_directory(char *argument)
 	printf("\n");
 }
 
+// print all values returned by scandir
 void list_directory(char *argument)
 {
 	struct dirent **list_of_files;
@@ -169,6 +172,7 @@ void list_directory(char *argument)
 	}
 }
 
+// create new thread to execute command and wait for it
 void execute_file(char *argument, char **list_of_arguments)
 {
 	if (fork() == 0)
@@ -192,6 +196,7 @@ int main()
 {
 	print_welcome_message();
 
+	// set up command history
 	using_history();
 	stifle_history(MAX_HISTORY_LEN);
 
@@ -199,7 +204,7 @@ int main()
 	char *argument;
 	char *saveptr;
 
-	char cwd[MAX_LEN];
+	char cwd[MAX_LEN]; // currentworking directory
 
 	while (1)
 	{
@@ -207,11 +212,11 @@ int main()
 
 		input_buffer = readline(strcat(cwd, ">"));
 
-		if (strlen(input_buffer) != 0)
+		if (strlen(input_buffer) != 0) // if command not empty
 		{
 			add_history(input_buffer);
 
-			char *command_copy = malloc(strlen(input_buffer) + 1);
+			char *command_copy = malloc(strlen(input_buffer) + 1); // need copy because strtok changes its argument
 			strcpy(command_copy, input_buffer);
 
 			command_id = get_command_id(input_buffer);
@@ -373,6 +378,7 @@ int main()
 
 				argument = strtok(command_copy, " ");
 
+				// add arguments to list until no more arguments
 				while (argument != NULL)
 				{
 					if (index > MAX_ARGUMENTS)
@@ -386,13 +392,13 @@ int main()
 					argument = strtok(NULL, " ");
 				}
 
-				list_of_arguments[index] = NULL;
+				list_of_arguments[index] = NULL; // last argument must be null
 
 				execute_file(list_of_arguments[0], list_of_arguments);
 				break;
 			}
 
-			free(command_copy);
+			free(command_copy); // free command copy
 		}
 	}
 }
