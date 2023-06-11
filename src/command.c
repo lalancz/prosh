@@ -53,8 +53,8 @@ pthread_t *start_productivity_mode(int minutes, char *error_message) {
 		return NULL;
 	}
 	
-	/* Set the productivity mode's duration. */
-	pmode_args->productivity_mode_duration = minutes;
+	/* Set the productivity mode's duration in seconds. */
+	pmode_args->productivity_mode_duration = minutes * 60;
 	
 	/* Start the productivity mode thread. */
 	if (pthread_create(&pmode_thread_id, NULL, pmode_thread, (void *)pmode_args) != 0) {
@@ -156,15 +156,9 @@ bool is_browser_running() {
 }
 
 void kill_blocked_processes() {
-	clock_t begin = clock();
-
 	/* 'pkill -15' terminates the process 'softly'. */
 	system("pkill -15 mines");
 	system("pkill -15 mahjongg");
-
-	clock_t end = clock();
-	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-	printf("Blocked processes killed (in %f s)\n", time_spent);
 }
 
 int block_domains() {
@@ -230,7 +224,7 @@ void show_status() {
 	
 		printf("Productivity mode running: yes\n");
 		printf("Started at: %s\n", time_str);
-		printf("Remaining time: %d minutes\n", remaining_time);
+		printf("Remaining time: %d min %d seconds\n", remaining_time / 60, remaining_time % 60);
 	} else {
 		printf("Productivity mode running: no\n");
 	}
