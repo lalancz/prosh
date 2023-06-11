@@ -49,8 +49,16 @@ void kill_blocked_processes();
 void print_error_message(char *message, int code);
 
 /**
+ * Checks if a browser application is open.
+ * 
+ * @return True if a browser is running, otherwise false
+ */
+bool is_browser_running();
+
+/**
  * Blocks domains that should not be accessed
- * while the productivity mode is running.
+ * while the productivity mode is running
+ * by calling 'sudo ./proshdom block'.
  * 
  * @return 0 if successful, otherwise errno.
  */
@@ -58,18 +66,12 @@ int block_domains();
 
 /**
  * Unblocks domains that were blocked at the start
- * of the productivity mode.
+ * of the productivity mode by calling
+ * 'sudo ./proshdom unblock'.
  * 
  * @return 0 if successful, otherwise errno.
  */
 int unblock_domains();
-
-/**
- * Checks if a browser application is open.
- * 
- * @return True if a browser is running, otherwise false
- */
-bool is_browser_running();
 
 #endif
 
