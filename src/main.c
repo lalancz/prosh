@@ -8,6 +8,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "command.c"
+#include "manager.c"
 
 #define MAX_LEN 100
 #define MAX_HISTORY_LEN 10
@@ -33,7 +34,8 @@ enum ProshCommands
 	END,
 	STATUS,
 	ADD,
-	REMOVE
+	REMOVE,
+	LIST
 };
 
 void print_welcome_message()
@@ -69,9 +71,10 @@ void print_welcome_message()
 	}
 }
 
-int get_prosh_command_id(char *prosh_string)
+int get_prosh_command_id()
 {
-	char* command = strtok(prosh_string, " ");
+	char* command = strtok(NULL, " ");
+	
 
 	if (strcmp(command, "start") == 0)
 	{
@@ -92,6 +95,13 @@ int get_prosh_command_id(char *prosh_string)
 	else if (strcmp(command, "remove") == 0)
 	{
 		return REMOVE;
+	}
+	else if (strcmp(command, "list") == 0)
+	{
+		return LIST;
+	} else
+	{
+		return -1;
 	}
 }
 
@@ -225,9 +235,8 @@ int main()
 				}
 				break;
 			case PROD:
-				argument = strtok(NULL, " ");
 
-				switch (get_prosh_command_id(argument))
+				switch (get_prosh_command_id())
 				{
 					case START:
 						argument = strtok(NULL, " ");
@@ -251,6 +260,17 @@ int main()
 						break;
 					case STATUS:
 						show_status();
+						break;
+					case ADD:
+						argument = strtok(NULL, " ");
+						add_blocked_domain(argument);
+						break;
+					case REMOVE:
+						argument = strtok(NULL, " ");
+						remove_blocked_domain(argument);
+						break;
+					case LIST:
+						show_blocked_domains();
 						break;
 					default:
 						printf("prod command not found\n\n");
