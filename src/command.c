@@ -12,9 +12,7 @@
 #include <X11/Xos.h>
 #include "command.h"
 
-#define HOSTS_FILE "/etc/hosts"
 #define HOSTS_FILE_COPY "/etc/hosts_prosh_copy"
-#define MAX_ITERATIONS 1000000
 
 pthread_t pmode_thread_id;
 
@@ -161,48 +159,6 @@ void kill_blocked_processes() {
 	system("pkill -15 mahjongg");
 }
 
-int block_domains() {
-	FILE *original_hosts_file = fopen(HOSTS_FILE, "a+"); // a+ for reading and appending
-	if (!original_hosts_file) {
-		return errno;
-	}
-	
-	FILE *hosts_file_copy = fopen(HOSTS_FILE_COPY, "w");
-	if (!hosts_file_copy) {
-		fclose(original_hosts_file);
-		return errno;
-	}
-	
-	int ch;
-	int iteration = 0;
-	
-	while ((ch = fgetc(original_hosts_file)) > 0 && iteration < MAX_ITERATIONS) {
-		fputc(ch, hosts_file_copy);
-		iteration++;
-	}
-	
-	fputs("127.0.0.1 youtube.com www.youtube.com\n", original_hosts_file);
-	fputs("127.0.0.1 twitter.com www.twitter.com\n", original_hosts_file);
-	fputs("127.0.0.1 facebook.com www.facebook.com\n\n", original_hosts_file);
-	
-	fclose(original_hosts_file);
-	fclose(hosts_file_copy);
-	
-	return 0;
-}
-
-int unblock_domains() {
-	if (remove(HOSTS_FILE) != 0) {
-		return errno;
-	}
-	
-	if (rename(HOSTS_FILE_COPY, HOSTS_FILE) != 0) {
-		return errno;
-	}
-	
-	return 0;
-}
-
 void exit_productivity_mode() {
 	// TODO check if user has permissions
 	if (pmode_args != NULL) {
@@ -229,4 +185,17 @@ void show_status() {
 		printf("Productivity mode running: no\n");
 	}
 }
+
+int block_domains() {
+	system("sudo ./proshdom block");
+	// TODO error handling
+	return 0;
+}
+
+int unblock_domains() {
+	system("sudo ./proshdom unblock");
+	// TODO error handling
+	return 0;
+}
+
 
