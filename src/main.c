@@ -8,6 +8,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "command.c"
+#include "manager.c"
 
 #define MAX_LEN 100
 #define MAX_HISTORY_LEN 10
@@ -24,9 +25,17 @@ enum Commands
 	CD,
 	LS,
 	EXEC,
-	STARTPROD,
-	ENDPROD,
-	PRODSTAT
+	PROD
+};
+
+enum ProshCommands
+{
+	START,
+	END,
+	STATUS,
+	ADD,
+	REMOVE,
+	LIST
 };
 
 void print_welcome_message()
@@ -62,6 +71,40 @@ void print_welcome_message()
 	}
 }
 
+int get_prosh_command_id()
+{
+	char* command = strtok(NULL, " ");
+	
+
+	if (strcmp(command, "start") == 0)
+	{
+		return START;
+	}
+	else if (strcmp(command, "end") == 0)
+	{
+		return END;
+	}
+	else if (strcmp(command, "status") == 0)
+	{
+		return STATUS;
+	}
+	else if (strcmp(command, "add") == 0)
+	{
+		return ADD;
+	}
+	else if (strcmp(command, "remove") == 0)
+	{
+		return REMOVE;
+	}
+	else if (strcmp(command, "list") == 0)
+	{
+		return LIST;
+	} else
+	{
+		return -1;
+	}
+}
+
 int get_command_id(char *command_string)
 {
 	char *command = strtok(command_string, " ");
@@ -74,17 +117,9 @@ int get_command_id(char *command_string)
 	{
 		return LS;
 	}
-	else if (strcmp(command, "startprod") == 0)
+	else if (strcmp(command, "prod") == 0)
 	{
-		return STARTPROD;
-	}
-	else if (strcmp(command, "endprod") == 0)
-	{
-		return ENDPROD;
-	}
-	else if (strcmp(command, "statprod") == 0)
-	{
-		return PRODSTAT;
+		return PROD;
 	}
 	else
 	{
@@ -199,28 +234,48 @@ int main()
 					list_directory(argument);
 				}
 				break;
-			case STARTPROD:
-				argument = strtok(NULL, " ");
-				int minutes = atoi(argument);
+			case PROD:
 
-				char error_message[MAX_ERROR_LEN];
-
-				pthread_t *tid = start_productivity_mode(minutes, error_message);
-
-				if (tid == NULL)
+				switch (get_prosh_command_id())
 				{
-					printf("%s\n\n", error_message);
+					case START:
+						argument = strtok(NULL, " ");
+						int minutes = atoi(argument);
+
+						char error_message[MAX_ERROR_LEN];
+
+						pthread_t *tid = start_productivity_mode(minutes, error_message);
+
+						if (tid == NULL)
+						{
+							printf("%s\n\n", error_message);
+						}
+						else
+						{
+							printf("Productivity started\n\n");
+						}
+						break;
+					case END:
+						exit_productivity_mode();
+						break;
+					case STATUS:
+						show_status();
+						break;
+					case ADD:
+						argument = strtok(NULL, " ");
+						add_blocked_domain(argument);
+						break;
+					case REMOVE:
+						argument = strtok(NULL, " ");
+						remove_blocked_domain(argument);
+						break;
+					case LIST:
+						show_blocked_domains();
+						break;
+					default:
+						printf("prod command not found\n\n");
+						break;
 				}
-				else
-				{
-					printf("Productivity started\n\n");
-				}
-				break;
-			case ENDPROD:
-				exit_productivity_mode();
-				break;
-			case PRODSTAT:
-				show_status();
 				break;
 			default:
 				char *list_of_arguments[MAX_ARGUMENTS];
