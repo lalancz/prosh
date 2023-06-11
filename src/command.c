@@ -33,8 +33,6 @@ pthread_t *start_productivity_mode(int minutes, char *error_message) {
 	if (!pmode_args) {
 		pmode_args = (struct args *) malloc(sizeof(struct args));
 	}
-
-	printf("%d", pmode_args->productivity_mode_running);
 	
 	/* Do not start the productivity mode if it is already running. */
 	if (pmode_args->productivity_mode_running) {
@@ -54,6 +52,49 @@ pthread_t *start_productivity_mode(int minutes, char *error_message) {
 		return NULL;
 	}
 	
+	int error;
+	
+	/*
+	 * If a copy of the hosts file already exists,
+	 * the last run did not end properly.
+	 * This may be because of a force quit or a crash.
+	 * In that case a clean-up is needed.
+	 */
+	if (access(HOSTS_FILE_COPY, F_OK) == 0) {
+		error = unblock_domains();
+		if (error != 0) {
+			strcpy(error_message, "Blocked domains from last run could not be cleaned.");
+			return NULL;
+		}
+	}
+	
+	/*
+	 * Block the domains. This function uses
+	 * root permissions with sudo.
+	 */
+	error = block_domains();
+	if (error != 0) {
+		strcpy(error_message, "Blocking domains failed.");
+		return NULL;
+	}
+	
+	/*
+	 * Reset the sudo timestamp.
+	 * Thus the user has to enter the passwort again
+	 * when executing the next sudo command.
+	 */
+	error = system("sudo -k");
+	if (error == -1) {
+		strcpy(error_message, "Sudo timestamp could not be reset.");
+		return NULL;
+	}
+	
+	/*
+	 * Kill all processes that will be blocked
+	 * but are already running.
+	 */
+	kill_blocked_processes();
+	
 	/* Set the productivity mode's duration in seconds. */
 	pmode_args->productivity_mode_duration = minutes * 60;
 	
@@ -70,32 +111,6 @@ pthread_t *start_productivity_mode(int minutes, char *error_message) {
 
 void *pmode_thread(void *input) {
 	struct args *thread_args = (struct args *)input;
-	int error;
-	
-	/*
-	 * If a copy of the hosts file already exists,
-	 * the last run did not end properly.
-	 * This may be because of a force quit or a crash.
-	 * In that case a clean-up is needed.
-	 */
-	if (access(HOSTS_FILE_COPY, F_OK) == 0) {
-		error = unblock_domains();
-		if (error != 0) {
-			print_error_message("Blocked domains from last run could not be cleaned.", error);
-			return NULL;
-		}
-	}
-	
-	/*
-	 * Kill running processes that should be blocked
-	 * and block the domains.
-	 */
-	kill_blocked_processes();
-	error = block_domains();
-	if (error != 0) {
-		print_error_message("Blocking domains failed.", error);
-		return NULL;
-	}
 	
 	/* Initialize productivity mode arguments. */
 	thread_args->productivity_mode_running = true;
@@ -128,7 +143,7 @@ void *pmode_thread(void *input) {
 	}
 	
 	/* Clean-up by unblocking the domains. */
-	error = unblock_domains();
+	int error = unblock_domains();
 	if (error != 0) {
 		print_error_message("Unblocking domains failed.", error);
 	}
