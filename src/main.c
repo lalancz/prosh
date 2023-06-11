@@ -73,8 +73,7 @@ void print_welcome_message()
 
 int get_prosh_command_id()
 {
-	char* command = strtok(NULL, " ");
-	
+	char *command = strtok(NULL, " ");
 
 	if (strcmp(command, "start") == 0)
 	{
@@ -99,7 +98,8 @@ int get_prosh_command_id()
 	else if (strcmp(command, "list") == 0)
 	{
 		return LIST;
-	} else
+	}
+	else
 	{
 		return -1;
 	}
@@ -238,61 +238,133 @@ int main()
 
 				switch (get_prosh_command_id())
 				{
-					case START:
+				case START:
+					argument = strtok(NULL, " ");
+
+					if (argument == NULL)
+					{
+						printf("prod start usage: prod start [minutes]\n\n");
+						break;
+					}
+
+					int minutes = atoi(argument);
+
+					char error_message[MAX_ERROR_LEN];
+
+					pthread_t *tid = start_productivity_mode(minutes, error_message);
+
+					if (tid == NULL)
+					{
+						printf("%s\n\n", error_message);
+					}
+					else
+					{
+						printf("Productivity started\n\n");
+					}
+					break;
+				case END:
+					exit_productivity_mode();
+					break;
+				case STATUS:
+					show_status();
+					break;
+				case ADD:
+					argument = strtok(NULL, " ");
+
+					if (argument == NULL)
+					{
+						printf("prod add usage: prod add [process | domain] [name of process | domain]\n\n");
+						break;
+					}
+
+					if (strcmp("domain", argument) == 0)
+					{
 						argument = strtok(NULL, " ");
-
-						if (argument == NULL) {
-							printf("prod start usage: prod start [minutes]\n\n");
-							break;
-						}
-
-						int minutes = atoi(argument);
-
-						char error_message[MAX_ERROR_LEN];
-
-						pthread_t *tid = start_productivity_mode(minutes, error_message);
-
-						if (tid == NULL)
+						if (argument == NULL)
 						{
-							printf("%s\n\n", error_message);
-						}
-						else
-						{
-							printf("Productivity started\n\n");
-						}
-						break;
-					case END:
-						exit_productivity_mode();
-						break;
-					case STATUS:
-						show_status();
-						break;
-					case ADD:
-						argument = strtok(NULL, " ");
-
-						if (argument == NULL) {
-							printf("prod add usage: prod add [domain]\n\n");
+							printf("prod add usage: prod add [process | domain] [name of process | domain]\n\n");
 							break;
 						}
 
 						add_blocked_domain(argument);
-						break;
-					case REMOVE:
+					}
+					else if (strcmp("process", argument) == 0)
+					{
 						argument = strtok(NULL, " ");
+						if (argument == NULL)
+						{
+							printf("prod add usage: prod add [process | domain] [name of process | domain]\n\n");
+							break;
+						}
 
-						if (argument == NULL) {
-							printf("prod remove usage: prod remove [domain]\n\n");
+						add_blocked_process(argument);
+					}
+					else
+					{
+						printf("prod remove usage: prod add [process | domain] [name of process | domain]\n\n");
+					}
+					break;
+				case REMOVE:
+					argument = strtok(NULL, " ");
+
+					if (argument == NULL)
+					{
+						printf("prod remove usage: prod remove [process | domain] [name of process | domain]\n\n");
+						break;
+					}
+
+					if (strcmp("domain", argument) == 0)
+					{
+						argument = strtok(NULL, " ");
+						if (argument == NULL)
+						{
+							printf("prod remove usage: prod remove [process | domain] [name of process | domain]\n\n");
 							break;
 						}
 
 						remove_blocked_domain(argument);
+					}
+					else if (strcmp("process", argument) == 0)
+					{
+						argument = strtok(NULL, " ");
+						if (argument == NULL)
+						{
+							printf("prod remove usage: prod remove [process | domain] [name of process | domain]\n\n");
+							break;
+						}
+
+						remove_blocked_process(argument);
+					}
+					else
+					{
+						printf("prod remove usage: prod remove [process | domain] [name of process | domain]\n\n");
+					}
+					break;
+				case LIST:
+					argument = strtok(NULL, " ");
+
+					if (argument == NULL)
+					{
+						printf("prod list usage: prod list [process | domain]\n\n");
 						break;
-					case LIST:
+					}
+
+					if (strcmp("domain", argument) == 0)
+					{
 						show_blocked_domains();
-						break;
-					default:
-						printf("prod command not found\n\n");
-						break;
+					}
+					else if (strcmp("process", argument) == 0)
+					{
+						show_blocked_processes();
+					}
+					else
+					{
+						printf("prod list usage: prod list [process | domain]\n\n");
+					}
+					break;
+				default:
+					printf("prod command not found\n\n");
+					break;
 				}
 				break;
 			default:
