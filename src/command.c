@@ -16,13 +16,13 @@
 #define MAX_ITERATIONS 1000000
 
 pthread_t *start_productivity_mode(int minutes);
-int exit_productivity_mode();
 void show_status();
 void *pmode_thread(void *input);
 void kill_blocked_processes();
+void print_error_message(char *message, int code);
+int exit_productivity_mode();
 int block_domains();
 int unblock_domains();
-void print_error_message(char *message, int code);
 bool is_browser_running();
 
 char error_message[100];
@@ -37,22 +37,36 @@ struct args {
 struct args *pmode_args;
 
 pthread_t *start_productivity_mode(int minutes) {
-	if (pmode_args == NULL) {
+	/*
+	 * pmode_args is null on the first time the productivity mode is started.
+	 * In that case the memory needs to be allocated.
+	 */
+	if (!pmode_args) {
 		pmode_args = (struct args *) malloc(sizeof(struct args));
 	}
 
+	/* Do not start the productivity mode if it is already running. */
 	if (pmode_args->productivity_mode_running) {
 		strcpy(error_message, "Productivity mode already on.\n");
 		return NULL;
 	}
 	
+	/*
+	 * If a browser has already opened a blocked domain,
+	 * the blocking mechanism will not be effective.
+	 * (Probably because of cashing.)
+	 * Therefore we ask the user to close their browsers
+	 * before running the productivity mode.
+	 */
 	if (is_browser_running()) {
 		strcpy(error_message, "Please close all browsers before starting the producitivity mode.\n");
 		return NULL;
 	}
 	
+	/* Set the productivity mode's duration. */
 	pmode_args->productivity_mode_duration = minutes;
 	
+	/* Start the productivity mode thread. */
 	if (pthread_create(&pmode_thread_id, NULL, pmode_thread, (void *)pmode_args) != 0) {
 		strcpy(error_message, "Productivity mode could not be activated.\n");
 		return NULL;
@@ -67,6 +81,12 @@ void *pmode_thread(void *input) {
 	struct args *thread_args = (struct args *)input;
 	int error;
 	
+	/*
+	 * If a copy of the hosts file already exists,
+	 * the last run did not end properly.
+	 * This may be because of a force quit or a crash.
+	 * In that case a clean-up is needed.
+	 */
 	if (access(HOSTS_FILE_COPY, F_OK) == 0) {
 		error = unblock_domains();
 		if (error != 0) {
@@ -75,36 +95,49 @@ void *pmode_thread(void *input) {
 		}
 	}
 	
+	/*
+	 * Kill running processes that should be blocked
+	 * and block the domains.
+	 */
 	kill_blocked_processes();
 	error = block_domains();
 	if (error != 0) {
 		print_error_message("Blocking domains failed.", error);
-		thread_args->productivity_mode_running = false;
 		return NULL;
 	}
 	
+	/* Initialize productivity mode arguments. */
 	pmode_args->productivity_mode_running = true;
 	time(&pmode_args->productivity_mode_start_time);
 	
-	time_t now;
-	XEvent e;
+	
+	/* Subscribe to the X11 window events. */
 	Display *display = XOpenDisplay(NULL);
 	XSelectInput(display, DefaultRootWindow(display), SubstructureNotifyMask);
+	
+	time_t now;
+	XEvent e;
 
 	while (thread_args->productivity_mode_running) {
+		/* If there is a new X11 event... */
 		if (XPending(display) > 0) {
+			/* ...pop it from the event queue. */
 			XNextEvent(display, &e);
+			/* And if it was sent because a new window was created... */
 			if (e.type == CreateNotify) {
+				/* ...call the kill function. */
 				kill_blocked_processes();
 			}
 		}
 
+		/* Check if the productivity mode's duration is over. */
 		time(&now);
 		if (difftime(now, thread_args->productivity_mode_start_time) > thread_args->productivity_mode_duration) {
 			thread_args->productivity_mode_running = false;
 		}
 	}
 	
+	/* Clean-up by unblocking the domains. */
 	error = unblock_domains();
 	if (error != 0) {
 		print_error_message("Unblocking domains failed.", error);
@@ -136,6 +169,7 @@ bool is_browser_running() {
 void kill_blocked_processes() {
 	clock_t begin = clock();
 
+	/* 'pkill -15' terminates the process 'softly'. */
 	system("pkill -15 mines");
 	system("pkill -15 mahjongg");
 
