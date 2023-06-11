@@ -47,7 +47,7 @@ pthread_t *start_productivity_mode(int minutes, char *error_message) {
 	 * before running the productivity mode.
 	 */
 	if (is_browser_running()) {
-		strcpy(error_message, "Please close all browsers before starting the producitivity mode.\n");
+		strcpy(error_message, "Please close all browsers before starting the productivity mode.\n");
 		return NULL;
 	}
 	
