@@ -240,6 +240,12 @@ int main()
 				{
 					case START:
 						argument = strtok(NULL, " ");
+
+						if (argument == NULL) {
+							printf("prod start usage: prod start [minutes]\n\n");
+							break;
+						}
+
 						int minutes = atoi(argument);
 
 						char error_message[MAX_ERROR_LEN];
@@ -263,10 +269,22 @@ int main()
 						break;
 					case ADD:
 						argument = strtok(NULL, " ");
+
+						if (argument == NULL) {
+							printf("prod add usage: prod add [domain]\n\n");
+							break;
+						}
+
 						add_blocked_domain(argument);
 						break;
 					case REMOVE:
 						argument = strtok(NULL, " ");
+
+						if (argument == NULL) {
+							printf("prod remove usage: prod remove [domain]\n\n");
+							break;
+						}
+
 						remove_blocked_domain(argument);
 						break;
 					case LIST:
