@@ -7,17 +7,27 @@
 #include <sys/wait.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include "command.c"
 
 #define MAX_LEN 100
 #define MAX_HISTORY_LEN 10
 #define MAX_ARGUMENTS 10
+#define MAX_ERROR_LEN 100
 
 // compile command needs -lreadline flag (gcc main.c -lreadline)
 
 char history[MAX_HISTORY_LEN][MAX_LEN];
 char *input_buffer;
 
-enum Commands {CD, LS, EXEC};
+enum Commands
+{
+	CD,
+	LS,
+	EXEC,
+	STARTPROD,
+	ENDPROD,
+	PRODSTAT
+};
 
 void print_welcome_message()
 {
@@ -63,6 +73,18 @@ int get_command_id(char *command_string)
 	else if (strcmp(command, "ls") == 0)
 	{
 		return LS;
+	}
+	else if (strcmp(command, "startprod") == 0)
+	{
+		return STARTPROD;
+	}
+	else if (strcmp(command, "endprod") == 0)
+	{
+		return ENDPROD;
+	}
+	else if (strcmp(command, "statprod") == 0)
+	{
+		return PRODSTAT;
 	}
 	else
 	{
@@ -176,6 +198,29 @@ int main()
 				{
 					list_directory(argument);
 				}
+				break;
+			case STARTPROD:
+				argument = strtok(NULL, " ");
+				int minutes = atoi(argument);
+
+				char error_message[MAX_ERROR_LEN];
+
+				pthread_t *tid = start_productivity_mode(minutes, error_message);
+
+				if (tid == NULL)
+				{
+					printf("%s\n\n", error_message);
+				}
+				else
+				{
+					printf("Productivity started\n\n");
+				}
+				break;
+			case ENDPROD:
+				exit_productivity_mode();
+				break;
+			case PRODSTAT:
+				show_status();
 				break;
 			default:
 				char *list_of_arguments[MAX_ARGUMENTS];
