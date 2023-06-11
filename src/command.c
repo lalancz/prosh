@@ -22,7 +22,8 @@ struct args {
 	int productivity_mode_duration;
 };
 
-struct args *pmode_args;
+struct args pma = {false, (time_t)0, 0};
+struct args *pmode_args = &pma;
 
 pthread_t *start_productivity_mode(int minutes, char *error_message) {
 	/*
@@ -33,6 +34,8 @@ pthread_t *start_productivity_mode(int minutes, char *error_message) {
 		pmode_args = (struct args *) malloc(sizeof(struct args));
 	}
 
+	printf("%d", pmode_args->productivity_mode_running);
+	
 	/* Do not start the productivity mode if it is already running. */
 	if (pmode_args->productivity_mode_running) {
 		strcpy(error_message, "Productivity mode already on.\n");
