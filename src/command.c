@@ -51,9 +51,6 @@ pthread_t *start_productivity_mode(int minutes) {
 		return NULL;
 	}
 	
-	strcpy(error_message, "");
-	pmode_args->productivity_mode_running = true;
-	time(&pmode_args->productivity_mode_start_time);
 	pmode_args->productivity_mode_duration = minutes;
 	
 	if (pthread_create(&pmode_thread_id, NULL, pmode_thread, (void *)pmode_args) != 0) {
@@ -61,16 +58,13 @@ pthread_t *start_productivity_mode(int minutes) {
 		return NULL;
 	}
 	
+	strcpy(error_message, "");
+	
 	return &pmode_thread_id;
 }
 
 void *pmode_thread(void *input) {
 	struct args *thread_args = (struct args *)input;
-	
-	time_t now;
-	XEvent e;
-	Display *display = XOpenDisplay(NULL);
-	XSelectInput(display, DefaultRootWindow(display), SubstructureNotifyMask);
 	int error;
 	
 	if (access(HOSTS_FILE_COPY, F_OK) == 0) {
@@ -88,6 +82,14 @@ void *pmode_thread(void *input) {
 		thread_args->productivity_mode_running = false;
 		return NULL;
 	}
+	
+	pmode_args->productivity_mode_running = true;
+	time(&pmode_args->productivity_mode_start_time);
+	
+	time_t now;
+	XEvent e;
+	Display *display = XOpenDisplay(NULL);
+	XSelectInput(display, DefaultRootWindow(display), SubstructureNotifyMask);
 
 	while (thread_args->productivity_mode_running) {
 		if (XPending(display) > 0) {
@@ -99,8 +101,13 @@ void *pmode_thread(void *input) {
 
 		time(&now);
 		if (difftime(now, thread_args->productivity_mode_start_time) > thread_args->productivity_mode_duration) {
-			exit_productivity_mode();
+			thread_args->productivity_mode_running = false;
 		}
+	}
+	
+	error = unblock_domains();
+	if (error != 0) {
+		print_error_message("Unblocking domains failed.", error);
 	}
 }
 
@@ -183,10 +190,6 @@ int exit_productivity_mode() {
 	// TODO check if user has permissions
 	if (pmode_args != NULL) {
 		pmode_args->productivity_mode_running = false;
-		int error = unblock_domains();
-		if (error != 0) {
-			print_error_message("Unblocking domains failed.", error);
-		}
 	}
 }
 
@@ -210,19 +213,17 @@ void show_status() {
 int main() {
 	show_status();
 	
-	pthread_t *thid = start_productivity_mode(8);
+	pthread_t *thid = start_productivity_mode(30);
 	if (!thid) {
 		printf("%s", error_message);
 		return -1;
 	}
 	
-	/*
 	for(int i = 0; i < 4; i++) {
 		sleep(1);
 	}
 	
 	exit_productivity_mode();
-	*/
 	
 	pthread_join(*thid, NULL);
 	
