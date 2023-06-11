@@ -10,20 +10,11 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xos.h>
+#include "command.h"
 
 #define HOSTS_FILE "/etc/hosts"
 #define HOSTS_FILE_COPY "/etc/hosts_prosh_copy"
 #define MAX_ITERATIONS 1000000
-
-pthread_t *start_productivity_mode(int minutes);
-void show_status();
-void *pmode_thread(void *input);
-void kill_blocked_processes();
-void print_error_message(char *message, int code);
-int exit_productivity_mode();
-int block_domains();
-int unblock_domains();
-bool is_browser_running();
 
 char error_message[100];
 pthread_t pmode_thread_id;
@@ -109,7 +100,6 @@ void *pmode_thread(void *input) {
 	/* Initialize productivity mode arguments. */
 	pmode_args->productivity_mode_running = true;
 	time(&pmode_args->productivity_mode_start_time);
-	
 	
 	/* Subscribe to the X11 window events. */
 	Display *display = XOpenDisplay(NULL);
