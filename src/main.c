@@ -24,9 +24,16 @@ enum Commands
 	CD,
 	LS,
 	EXEC,
-	STARTPROD,
-	ENDPROD,
-	PRODSTAT
+	PROD
+};
+
+enum ProshCommands
+{
+	START,
+	END,
+	STATUS,
+	ADD,
+	REMOVE
 };
 
 void print_welcome_message()
@@ -62,6 +69,32 @@ void print_welcome_message()
 	}
 }
 
+int get_prosh_command_id(char *prosh_string)
+{
+	char* command = strtok(prosh_string, " ");
+
+	if (strcmp(command, "start") == 0)
+	{
+		return START;
+	}
+	else if (strcmp(command, "end") == 0)
+	{
+		return END;
+	}
+	else if (strcmp(command, "status") == 0)
+	{
+		return STATUS;
+	}
+	else if (strcmp(command, "add") == 0)
+	{
+		return ADD;
+	}
+	else if (strcmp(command, "remove") == 0)
+	{
+		return REMOVE;
+	}
+}
+
 int get_command_id(char *command_string)
 {
 	char *command = strtok(command_string, " ");
@@ -74,17 +107,9 @@ int get_command_id(char *command_string)
 	{
 		return LS;
 	}
-	else if (strcmp(command, "startprod") == 0)
+	else if (strcmp(command, "prod") == 0)
 	{
-		return STARTPROD;
-	}
-	else if (strcmp(command, "endprod") == 0)
-	{
-		return ENDPROD;
-	}
-	else if (strcmp(command, "statprod") == 0)
-	{
-		return PRODSTAT;
+		return PROD;
 	}
 	else
 	{
@@ -199,28 +224,38 @@ int main()
 					list_directory(argument);
 				}
 				break;
-			case STARTPROD:
+			case PROD:
 				argument = strtok(NULL, " ");
-				int minutes = atoi(argument);
 
-				char error_message[MAX_ERROR_LEN];
-
-				pthread_t *tid = start_productivity_mode(minutes, error_message);
-
-				if (tid == NULL)
+				switch (get_prosh_command_id(argument))
 				{
-					printf("%s\n\n", error_message);
+					case START:
+						argument = strtok(NULL, " ");
+						int minutes = atoi(argument);
+
+						char error_message[MAX_ERROR_LEN];
+
+						pthread_t *tid = start_productivity_mode(minutes, error_message);
+
+						if (tid == NULL)
+						{
+							printf("%s\n\n", error_message);
+						}
+						else
+						{
+							printf("Productivity started\n\n");
+						}
+						break;
+					case END:
+						exit_productivity_mode();
+						break;
+					case STATUS:
+						show_status();
+						break;
+					default:
+						printf("prod command not found\n\n");
+						break;
 				}
-				else
-				{
-					printf("Productivity started\n\n");
-				}
-				break;
-			case ENDPROD:
-				exit_productivity_mode();
-				break;
-			case PRODSTAT:
-				show_status();
 				break;
 			default:
 				char *list_of_arguments[MAX_ARGUMENTS];
