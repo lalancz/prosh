@@ -16,7 +16,6 @@
 #define HOSTS_FILE_COPY "/etc/hosts_prosh_copy"
 #define MAX_ITERATIONS 1000000
 
-char error_message[100];
 pthread_t pmode_thread_id;
 
 struct args {
@@ -27,7 +26,7 @@ struct args {
 
 struct args *pmode_args;
 
-pthread_t *start_productivity_mode(int minutes) {
+pthread_t *start_productivity_mode(int minutes, char *error_message) {
 	/*
 	 * pmode_args is null on the first time the productivity mode is started.
 	 * In that case the memory needs to be allocated.
@@ -210,7 +209,7 @@ int unblock_domains() {
 	return 0;
 }
 
-int exit_productivity_mode() {
+void exit_productivity_mode() {
 	// TODO check if user has permissions
 	if (pmode_args != NULL) {
 		pmode_args->productivity_mode_running = false;
