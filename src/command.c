@@ -97,8 +97,8 @@ void *pmode_thread(void *input) {
 	}
 	
 	/* Initialize productivity mode arguments. */
-	pmode_args->productivity_mode_running = true;
-	time(&pmode_args->productivity_mode_start_time);
+	thread_args->productivity_mode_running = true;
+	time(&thread_args->productivity_mode_start_time);
 	
 	/* Subscribe to the X11 window events. */
 	Display *display = XOpenDisplay(NULL);
@@ -219,14 +219,18 @@ void exit_productivity_mode() {
 void show_status() {
 	if (pmode_args != NULL && pmode_args->productivity_mode_running) {
 		char time_str[50];
-		char remaining_time_str[20];
-		time_t now;
 		strftime(time_str, 50, "%Y-%m-%d %H:%M", localtime(&pmode_args->productivity_mode_start_time));
+		
+		time_t now;
 		time(&now);
+		
+		int passed_time = (int)difftime(now, pmode_args->productivity_mode_start_time);
+		int remaining_time = pmode_args->productivity_mode_duration - passed_time;
+		
 	
 		printf("Productivity mode running: yes\n");
 		printf("Started at: %s\n", time_str);
-		printf("Remaining time: %d seconds\n", (int)difftime(now, pmode_args->productivity_mode_start_time));
+		printf("Remaining time: %d minutes\n", remaining_time);
 	} else {
 		printf("Productivity mode running: no\n");
 	}
