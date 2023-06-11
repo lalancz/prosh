@@ -243,24 +243,3 @@ void show_status() {
 	}
 }
 
-// TODO remove main method after testing finished
-int main() {
-	show_status();
-	
-	pthread_t *thid = start_productivity_mode(30);
-	if (!thid) {
-		printf("%s", error_message);
-		return -1;
-	}
-	
-	for(int i = 0; i < 4; i++) {
-		sleep(1);
-	}
-	
-	exit_productivity_mode();
-	
-	pthread_join(*thid, NULL);
-	
-	return 0;
-}
-
