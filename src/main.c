@@ -186,7 +186,7 @@ void execute_file(char *argument, char **list_of_arguments)
 
 		if (result_code < 0)
 		{
-			printf("Execution of %s failed\n\n", argument);
+			printf("Execution of %s failed\n", argument);
 		}
 	}
 	else
@@ -262,7 +262,7 @@ int main()
 					}
 					else
 					{
-						printf("Productivity started\n\n");
+						printf("Productivity mode started\n\n");
 					}
 					break;
 				case END:
@@ -274,6 +274,7 @@ int main()
 					break;
 				case STATUS:
 					show_status();
+					printf("\n");
 					break;
 				case ADD:
 					argument = strtok(NULL, " ");

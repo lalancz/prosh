@@ -152,8 +152,6 @@ void remove_blocked_process(char *blocked_process_string)
 
 void show_blocked_domains() 
 {
-	printf("\n");
-
 	int i;
 	for (i = 0; i < MAX_DOMAINS; i++)
 	{
@@ -166,8 +164,6 @@ void show_blocked_domains()
 
 void show_blocked_processes()
 {
-	printf("\n");
-
 	int i;
 	for (i = 0; i < MAX_PROCESSES; i++)
 	{
