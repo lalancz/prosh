@@ -145,9 +145,18 @@ bool is_browser_running() {
 }
 
 void kill_blocked_processes() {
-	/* 'pkill -15' terminates the process 'softly'. */
-	system("pkill -15 mines");
-	system("pkill -15 mahjongg");
+	char command_prefix[] = "pkill -15 ";
+	char command[30];
+	
+	for (int i = 0; i < MAX_PROCESSES; i++) {
+		if (blocked_processes[i] && *blocked_processes[i] != '\0') {
+			strcpy(command, command_prefix);
+			strcat(command, blocked_processes[i]);
+			
+			/* 'pkill -15' terminates the process 'softly'. */
+			system(command);
+		}
+	}
 }
 
 void exit_productivity_mode(char *error_message) {
