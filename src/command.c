@@ -134,16 +134,12 @@ void kill_blocked_processes() {
 	char command_prefix[] = "pkill -15 ";
 	char command[30];
 	
-	for (int i = 0; i < MAX_PROCESSES; i++) {
-		if (blocked_processes[i] && *blocked_processes[i] != '\0') {
-			strcpy(command, command_prefix);
-			strcat(command, blocked_processes[i]);
-			
-			/* 'pkill -15' terminates the process 'softly'. */
-			system(command);
-		} else {
-			break;
-		}
+	for (int i = 0; i < blocked_processes_amount; i++) {
+		strcpy(command, command_prefix);
+		strcat(command, blocked_processes[i]);
+		
+		/* 'pkill -15' terminates the process 'softly'. */
+		system(command);
 	}
 }
 
@@ -182,13 +178,9 @@ bool block_domains() {
 	char command[MAX_COMMAND_LENGTH];
 	strcpy(command, command_prefix);
 	
-	for (int i = 0; i < MAX_DOMAINS; i++) {
-		if (blocked_domains[i] && *blocked_domains[i] != '\0') {
-			strcat(command, " ");
-			strcat(command, blocked_domains[i]);
-		} else {
-			break;
-		}
+	for (int i = 0; i < blocked_domains_amount; i++) {
+		strcat(command, " ");
+		strcat(command, blocked_domains[i]);
 	}
 
 	/*
