@@ -22,6 +22,7 @@
 // compile command needs -lreadline and -lX11 flag (gcc main.c -lreadline -lX11)
 
 char history[MAX_HISTORY_LEN][MAX_LEN];
+char readline_buffer[MAX_LEN + 16];
 char *input_buffer;
 
 enum Commands
@@ -55,7 +56,10 @@ void print_welcome_message()
 	while (1)
 	{
 		c = "qwertyuiopasdfghjklzxcvbnmWelcome to prosh [Version 0.01]QWERTYUIOPASDFGHJKL"[rand() % 76]; // pick random symbol
+
+		printf("\033[0;32m");
 		printf("%c", c);
+		printf("\033[0;37m");
 
 		if (c == welcome_message[index])
 		{
@@ -218,7 +222,9 @@ int main()
 	{
 		getcwd(cwd, MAX_LEN);
 
-		input_buffer = readline(strcat(cwd, ">"));
+
+		snprintf(readline_buffer, MAX_LEN + 16, "%s%s>%s", "\033[0;32m", cwd, "\033[0;37m");
+		input_buffer = readline(readline_buffer);
 
 		if (strlen(input_buffer) != 0) // if command not empty
 		{
