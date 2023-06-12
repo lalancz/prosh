@@ -46,7 +46,7 @@ enum ProshCommands
 // progressively guess letter until message is printed
 void print_welcome_message()
 {
-	char welcome_message[] = "Welcome to prosh [Version 0.01]";
+	char welcome_message[] = "Welcome to prosh [Version 1.00]";
 	char c;
 	int compare;
 	int index = 0;
