@@ -159,7 +159,8 @@ void list_directory(char *argument)
 
 		while (result_code--)
 		{
-			printf("%d. %s\n", result_code, list_of_files[result_code]->d_name);
+			if (result_code > 1)
+				printf("%d. %s\n", result_code - 1, list_of_files[result_code]->d_name);
 			free(list_of_files[result_code]);
 		}
 
