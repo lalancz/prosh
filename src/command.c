@@ -179,8 +179,7 @@ void show_status() {
 
 bool block_domains() {
 	char command_prefix[] = "sudo ./proshdom block";
-	/* Ubuntu supports commands with a length of 4096 characters. */
-	char command[4096];
+	char command[MAX_COMMAND_LENGTH];
 	strcpy(command, command_prefix);
 	
 	for (int i = 0; i < MAX_DOMAINS; i++) {
