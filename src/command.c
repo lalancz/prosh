@@ -12,6 +12,7 @@
 #include <X11/Xos.h>
 #include "command.h"
 
+#define HOSTS_FILE "/etc/hosts"
 #define HOSTS_FILE_COPY "/etc/hosts_prosh_copy"
 
 pthread_t pmode_thread_id;
@@ -36,7 +37,7 @@ pthread_t *start_productivity_mode(int minutes, char *error_message) {
 	
 	/* Do not start the productivity mode if it is already running. */
 	if (pmode_args->productivity_mode_running) {
-		strcpy(error_message, "Productivity mode already on.\n");
+		strcpy(error_message, "Productivity mode already on.");
 		return NULL;
 	}
 	
@@ -48,11 +49,15 @@ pthread_t *start_productivity_mode(int minutes, char *error_message) {
 	 * before running the productivity mode.
 	 */
 	if (is_browser_running()) {
-		strcpy(error_message, "Please close all browsers before starting the productivity mode.\n");
+		strcpy(error_message, "Please close all browsers before starting the productivity mode.");
 		return NULL;
 	}
 	
-	int error;
+	/* Do not start the productivity mode if there is no hosts file. */
+	if (access(HOSTS_FILE, F_OK) != 0) {
+		strcpy(error_message, "Your hosts file ('etc/hosts') does not exist. It is needed to run the productivity mode.");
+		return NULL;
+	}
 	
 	/*
 	 * If a copy of the hosts file already exists,
@@ -61,8 +66,7 @@ pthread_t *start_productivity_mode(int minutes, char *error_message) {
 	 * In that case a clean-up is needed.
 	 */
 	if (access(HOSTS_FILE_COPY, F_OK) == 0) {
-		error = unblock_domains();
-		if (error != 0) {
+		if (!unblock_domains()) {
 			strcpy(error_message, "Blocked domains from last run could not be cleaned.");
 			return NULL;
 		}
@@ -72,8 +76,7 @@ pthread_t *start_productivity_mode(int minutes, char *error_message) {
 	 * Block the domains. This function uses
 	 * root permissions with sudo.
 	 */
-	error = block_domains();
-	if (error != 0) {
+	if (!block_domains()) {
 		strcpy(error_message, "Blocking domains failed.");
 		return NULL;
 	}
@@ -83,7 +86,7 @@ pthread_t *start_productivity_mode(int minutes, char *error_message) {
 	 * Thus the user has to enter the passwort again
 	 * when executing the next sudo command.
 	 */
-	error = system("sudo -k");
+	int error = system("sudo -k");
 	if (error == -1) {
 		strcpy(error_message, "Sudo timestamp could not be reset.");
 		return NULL;
@@ -100,7 +103,7 @@ pthread_t *start_productivity_mode(int minutes, char *error_message) {
 	
 	/* Start the productivity mode thread. */
 	if (pthread_create(&pmode_thread_id, NULL, pmode_thread, (void *)pmode_args) != 0) {
-		strcpy(error_message, "Productivity mode could not be activated.\n");
+		strcpy(error_message, "Productivity mode could not be activated.");
 		return NULL;
 	}
 	
@@ -143,19 +146,8 @@ void *pmode_thread(void *input) {
 	}
 	
 	/* Clean-up by unblocking the domains. */
-	int error = unblock_domains();
-	if (error != 0) {
-		print_error_message("Unblocking domains failed.", error);
-	}
-}
-
-void print_error_message(char *message, int code) {
-	if (code != 0) {
-		switch (code) {
-			case ENOENT: printf("%s No such file or directory.\n", message); break;
-			case EACCES: printf("%s Permission denied.\n", message); break;
-			default: printf("%s Error code: %d\n", message, code); break;
-		}
+	if (!unblock_domains()) {
+		printf("Unblocking domains failed.");
 	}
 }
 
@@ -178,7 +170,6 @@ void kill_blocked_processes() {
 }
 
 void exit_productivity_mode() {
-	// TODO check if user has permissions
 	if (pmode_args != NULL) {
 		pmode_args->productivity_mode_running = false;
 	}
@@ -204,16 +195,20 @@ void show_status() {
 	}
 }
 
-int block_domains() {
-	system("sudo ./proshdom block");
-	// TODO error handling
-	return 0;
+bool block_domains() {
+	/*
+	 * Blocking domains needs root permissions.
+	 * Because we do not want to run the whole shell
+	 * with sudo we moved the functions to block
+	 * and unblock the domains into a separate
+	 * executable that we call as super user.
+	 */
+	return system("sudo ./proshdom block") == 0;
 }
 
-int unblock_domains() {
-	system("sudo ./proshdom unblock");
-	// TODO error handling
-	return 0;
+bool unblock_domains() {
+	/* Unblocking domains needs root permissions. */
+	return system("sudo ./proshdom unblock") == 0;
 }
 
 

@@ -40,15 +40,6 @@ void *pmode_thread(void *input);
 void kill_blocked_processes();
 
 /**
- * Prints a message to the console followed by a string
- * fitting the given error code.
- *
- * @param message The message to display
- * @param code The errno (p. e. 2/ENOENT)
- */
-void print_error_message(char *message, int code);
-
-/**
  * Checks if a browser application is open.
  * 
  * @return True if a browser is running, otherwise false
@@ -60,18 +51,18 @@ bool is_browser_running();
  * while the productivity mode is running
  * by calling 'sudo ./proshdom block'.
  * 
- * @return 0 if successful, otherwise errno.
+ * @return True if successful, otherwise false.
  */
-int block_domains();
+bool block_domains();
 
 /**
  * Unblocks domains that were blocked at the start
  * of the productivity mode by calling
  * 'sudo ./proshdom unblock'.
  * 
- * @return 0 if successful, otherwise errno.
+ * @return True if successful, otherwise false
  */
-int unblock_domains();
+bool unblock_domains();
 
 #endif
 

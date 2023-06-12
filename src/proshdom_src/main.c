@@ -83,10 +83,6 @@ int main(int argc, char *argv[]) {
 		return EXIT_FAILURE;
 	}
 	
-	if (error != 0) {
-		printf("Failed with error code %d\n", error);
-		return EXIT_FAILURE;
-	}
-	
-	return EXIT_SUCCESS;
+	/* Returns 0 if successful, otherwise errno. */
+	return error;
 }
