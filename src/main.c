@@ -292,6 +292,11 @@ int main()
 							printf("prod add usage: prod add [process | domain] [name of process | domain]\n\n");
 							break;
 						}
+						else if (pmode_args->productivity_mode_running)
+						{
+							printf("domains cannot be added while productivity mode is running\n\n");
+							break;
+						}
 
 						add_blocked_domain(argument, true);
 					}
@@ -303,12 +308,17 @@ int main()
 							printf("prod add usage: prod add [process | domain] [name of process | domain]\n\n");
 							break;
 						}
+						else if (pmode_args->productivity_mode_running)
+						{
+							printf("processes cannot be added while productivity mode is running\n\n");
+							break;
+						}
 
 						add_blocked_process(argument, true);
 					}
 					else
 					{
-						printf("prod remove usage: prod add [process | domain] [name of process | domain]\n\n");
+						printf("prod add usage: prod add [process | domain] [name of process | domain]\n\n");
 					}
 					break;
 				case REMOVE:
@@ -328,6 +338,11 @@ int main()
 							printf("prod remove usage: prod remove [process | domain] [name of process | domain]\n\n");
 							break;
 						}
+						else if (pmode_args->productivity_mode_running)
+						{
+							printf("domains cannot be removed while productivity mode is running\n\n");
+							break;
+						}
 
 						remove_blocked_domain(argument);
 					}
@@ -337,6 +352,11 @@ int main()
 						if (argument == NULL)
 						{
 							printf("prod remove usage: prod remove [process | domain] [name of process | domain]\n\n");
+							break;
+						}
+						else if (pmode_args->productivity_mode_running)
+						{
+							printf("processes cannot be removed while productivity mode is running\n\n");
 							break;
 						}
 
