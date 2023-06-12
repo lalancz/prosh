@@ -34,9 +34,28 @@
 
 \section{Introduction}
 
+\hspace{4em} Currently there are a lot of discussions going on about the effects of social media on our attention span. We and (we suspect) many other students are faced with a myriad of distractions from work daily. We find ourselves procrastinating far too often. It impedes our studies and makes us feel bad for indulging in these distractions. Thus, we found it a relevant issue enough to base our project on combating it. 
+
+\hspace{4em} The question that escapes many is how does one prevent procrastination? And in addition to that, what is the level at which procrastination becomes a problem? Of course, no one can maintain focus permanently, nor would anyone find this desirable. To mitigate the problem caused by procrastination we also had to ask in what ways we procrastinate. 
+
+\hspace{4em} The goal of this project was to create a custom shell, which can prohibit the user getting distracted by social media sites, games, etcetera. Our approach was to (in a brute-force fashion) simply disallow the user from connecting to sites and starting processes we consider not pertinent to work on their computer. 
+
+
 \section{Background}
 
+\hspace{4em} A shell is practically an interface to an interface. User inputs to system calls to OS. The main purpose of a shell is to parse user inputs and execute corresponding system calls. As such, the relevant technologies to the project are functions that can take user input and parse it and system calls for purposes like changing directory or executing files.
+
 \section{Implementation, Configuration and Setup}
+
+\hspace{4em} Firstly, a brief overview of the shell. The core of the shell is a while loop, which takes user input and returns the appropriate command ID. A switch statement is then used to decide what is the appropriate action to be taken. We classified commands into 4 categories: changing directory, listing files in a directory, file execution, and productivity mode related commands. There are a further 6 categories dedicated to handling productivity mode commands: start/end productivity mode, show status of the productivity mode, and adding/removing/listing processes/domains to be blocked during productivity mode. Domains are blocked using the /etc/hosts file and processes are blocked using pkill.
+
+\hspace{4em} Secondly, handling user input. We used the GNU readline library to handle inputs. It provides a function which takes inputs similarly to the one in Python and also is able to keep track of a history of commands.  Then strcmp is used to figure out what the user wishes to do and action is taken accordingly as described above. Arguments are parsed using the strtok function. It splits a string into several substrings using a user supplied delimiter (here the delimiter is a space). By calling this function until it returns NULL, we can extract all the arguments and also determine whether any arguments were supplied at all. We do not however exhaustively check all supplied arguments for functions defined by us (e.g., "cd ./some\_folder invalid\_argument" would still be a valid input). Since strtok alters the string supplied to it, we must store a copy of the command that the user inputs. This way, we can retain the original command even after checking which category it falls into. Executing files would not be possible otherwise, because some arguments would be lost.
+
+\hspace{4em} Our implementation of the change directory and list files in directory functionalities are quite simple. If no arguments are supplied then change directory simply returns and list lists the files in the current working directory. Otherwise, the corresponding system calls (chdir and scandir) are used and their result codes are used to determine of success.
+
+\hspace{4em} The last general shell function is the execution of files. If a user inputs something not defined by us then we attempt to execute their input using the execvp system call. Arguments are passed by constructing an array of arguments with strtok as described above. Since we wish to retain control even after the file has finished executing, we must execute this file in another task. We then wait for this task and after it has finished we continue with the main loop.
+
+
 \begin{lstlisting}[firstnumber=10]
 Use this for code
 \end{lstlisting}
@@ -51,6 +70,12 @@ Use this for code
 
 \section{Lessons learned}
 \subsection{Petr Sabovčik}
+
+\hspace{4em} Personally, I mostly applied previously learned knowledge rather than acquiring new knowledge throughout working on this project. Although it did take me quite a bit of courage to start working on the project, once I did I felt quite sure in my decisions and the biggest difficulties were wrestling with C strings and system call documentation. As a result, I have come away from this project with more self-confidence in my programming capabilities. Unlike during previous projects I was able to identify and remedy problems whenever they arose (no rewriting the whole project in a state of panic). Other than that, I also was able to compare a previous project to this one. A project I took part in last semester was devoid of communication and the division of labor was also lacking. This time my project partner encouraged a very healthy communicative environment with an emphasis on making progress in time for deadlines, which paid dividends.
+
+\hspace{4em} In short, I learned the values of project planning and communication.
+
+
 \subsection{Pascal Wohlwender}
 
 \section{References}
@@ -60,5 +85,15 @@ Use this for code
 \section{Appendix}
 
 \subsection{Declaration of Independent Authorship}
+
+We attest with our individual signatures that we have written this report independently and without outside
+help. We also attest that the information concerning the sources used in this work is true and complete in every
+respect. All sources that have been quoted or paraphrased have been marked accordingly.
+Additionally, we affirm that any text passages written with the help of AI-supported technology are marked as
+such, including a reference to the AI-supported program used.
+This report may be checked for plagiarism and use of AI-supported technology using the appropriate software.
+We understand that unethical conduct may lead to a grade of 1 or “fail” or expulsion from the study program.
+
+Source: Legal Services, University of Basel, April 2023
 
 \end{document}
