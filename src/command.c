@@ -1,17 +1,3 @@
-#include <unistd.h>
-#include <signal.h>
-#include <string.h>
-#include <stdio.h>
-#include <time.h>
-#include <pthread.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <errno.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xos.h>
-#include "command.h"
-
 pthread_t pmode_thread_id;
 
 struct args {

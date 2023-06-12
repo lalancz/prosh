@@ -2,13 +2,21 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <time.h>
+#include <errno.h>
 #include <string.h>
+#include <signal.h>
+#include <pthread.h>
 #include <sys/wait.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/Xos.h>
 #include "header.h"
 #include "manager.c"
+#include "command.h"
 #include "command.c"
 
 // compile command needs -lreadline and -lX11 flag (gcc main.c -lreadline -lX11)
@@ -202,6 +210,9 @@ int main()
 	char *saveptr;
 
 	char cwd[MAX_LEN]; // currentworking directory
+	
+	init_basic_blocked_domains();
+	init_basic_blocked_processes();
 
 	while (1)
 	{
@@ -282,7 +293,7 @@ int main()
 							break;
 						}
 
-						add_blocked_domain(argument);
+						add_blocked_domain(argument, true);
 					}
 					else if (strcmp("process", argument) == 0)
 					{
@@ -293,7 +304,7 @@ int main()
 							break;
 						}
 
-						add_blocked_process(argument);
+						add_blocked_process(argument, true);
 					}
 					else
 					{

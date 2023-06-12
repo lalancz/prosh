@@ -4,7 +4,7 @@ int blocked_domains_amount = 0;
 char blocked_processes[MAX_PROCESSES][MAX_PROCESS_LEN];
 int blocked_processes_amount = 0;
 
-void add_blocked_domain(char *blocked_domain_string)
+void add_blocked_domain(char *blocked_domain_string, bool print_result)
 {
 	if (strncmp("www.", blocked_domain_string, 4) == 0 || strncmp("http", blocked_domain_string, 4) == 0)
 	{
@@ -37,7 +37,9 @@ void add_blocked_domain(char *blocked_domain_string)
 	strcpy(blocked_domains[blocked_domains_amount], blocked_domain_string);
 	blocked_domains_amount++;
 
-	printf("domain name: %s added to block list\n\n", blocked_domain_string);
+	if (print_result) {
+		printf("domain name: %s added to block list\n\n", blocked_domain_string);	
+	}
 }
 
 void remove_blocked_domain(char *blocked_domain_string)
@@ -81,7 +83,7 @@ void remove_blocked_domain(char *blocked_domain_string)
 	printf("domain name: %s removed from block list\n\n", blocked_domain_string);
 }
 
-void add_blocked_process(char *blocked_process_string)
+void add_blocked_process(char *blocked_process_string, bool print_result)
 {
 	if (blocked_processes_amount == MAX_PROCESSES)
 	{
@@ -108,7 +110,9 @@ void add_blocked_process(char *blocked_process_string)
 	strcpy(blocked_processes[blocked_processes_amount], blocked_process_string);
 	blocked_processes_amount++;
 
-	printf("process name: %s added to block list\n\n", blocked_process_string);
+	if (print_result) {
+		printf("process name: %s added to block list\n\n", blocked_process_string);	
+	}
 }
 
 void remove_blocked_process(char *blocked_process_string)
@@ -173,3 +177,20 @@ void show_blocked_processes()
 
 	printf("\n");
 }
+
+void init_basic_blocked_domains()
+{
+	add_blocked_domain("youtube.com", false);
+	add_blocked_domain("twitter.com", false);
+	add_blocked_domain("facebook.com", false);
+	add_blocked_domain("tiktok.com", false);
+	add_blocked_domain("reddit.com", false);
+	add_blocked_domain("instagram.com", false);
+}
+
+void init_basic_blocked_processes()
+{
+	add_blocked_process("mines", false);
+	add_blocked_process("mahjongg", false);
+}
+
