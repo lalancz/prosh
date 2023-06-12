@@ -155,6 +155,8 @@ void kill_blocked_processes() {
 			
 			/* 'pkill -15' terminates the process 'softly'. */
 			system(command);
+		} else {
+			break;
 		}
 	}
 }
@@ -190,6 +192,22 @@ void show_status() {
 }
 
 bool block_domains() {
+	char command_prefix[] = "sudo ./proshdom block";
+	/* Ubuntu supports commands with a length of 4096 characters. */
+	char command[4096];
+	strcpy(command, command_prefix);
+	
+	for (int i = 0; i < MAX_DOMAINS; i++) {
+		if (blocked_domains[i] && *blocked_domains[i] != '\0') {
+			strcat(command, " ");
+			strcat(command, blocked_domains[i]);
+		} else {
+			break;
+		}
+	}
+	
+	printf("%s\n", command);
+
 	/*
 	 * Blocking domains needs root permissions.
 	 * Because we do not want to run the whole shell
@@ -197,7 +215,7 @@ bool block_domains() {
 	 * and unblock the domains into a separate
 	 * executable that we call as super user.
 	 */
-	return system("sudo ./proshdom block") == 0;
+	return system(command) == 0;
 }
 
 bool unblock_domains() {
