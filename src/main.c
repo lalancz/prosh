@@ -7,13 +7,9 @@
 #include <sys/wait.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include "header.h"
 #include "command.c"
 #include "manager.c"
-
-#define MAX_LEN 100
-#define MAX_HISTORY_LEN 10
-#define MAX_ARGUMENTS 10
-#define MAX_ERROR_LEN 100
 
 // compile command needs -lreadline and -lX11 flag (gcc main.c -lreadline -lX11)
 

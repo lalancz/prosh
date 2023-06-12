@@ -12,9 +12,6 @@
 #include <X11/Xos.h>
 #include "command.h"
 
-#define HOSTS_FILE "/etc/hosts"
-#define HOSTS_FILE_COPY "/etc/hosts_prosh_copy"
-
 pthread_t pmode_thread_id;
 
 struct args {

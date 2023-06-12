@@ -1,9 +1,3 @@
-#define MAX_DOMAINS 100
-#define MAX_DOMAIN_LEN 100
-
-#define MAX_PROCESSES 100
-#define MAX_PROCESS_LEN 100
-
 char blocked_domains[MAX_DOMAINS][MAX_DOMAIN_LEN];
 int blocked_domains_amount = 0;
 
