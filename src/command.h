@@ -9,16 +9,20 @@
  * is returned. Otherwise, NULL is returned and error_message
  * is initialized with an explanation.
  *
- * @param minutes The productivity mode duration in minutes
  * @param error_message An explanation of the occured error
  * @return The thread id if successful, otherwise NULL
  */
-pthread_t *start_productivity_mode(int minutes, char *error_message);
+pthread_t *start_productivity_mode(char *error_message);
 
 /*
  * Stops the running productivity mode.
+ *
+ * If an error occured, error_message is initialized
+ * with an explanation.
+ *
+ * @param error_message An explanation of the occured error
  */
-void exit_productivity_mode();
+void exit_productivity_mode(char *error_message);
 
 /*
  * Prints information about the productivity mode
@@ -63,6 +67,15 @@ bool block_domains();
  * @return True if successful, otherwise false
  */
 bool unblock_domains();
+
+/**
+ * Resets the sudo timestamp. Therefore the
+ * user has to enter the password again
+ * the next time a sudo command is executed.
+ *
+ * @return True if successful, otherwise false
+ */
+bool reset_sudo_timestamp();
 
 #endif
 

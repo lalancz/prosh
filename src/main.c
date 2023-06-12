@@ -244,19 +244,9 @@ int main()
 				switch (get_prosh_command_id())
 				{
 				case START:
-					argument = strtok(NULL, " ");
-
-					if (argument == NULL)
-					{
-						printf("prod start usage: prod start [minutes]\n\n");
-						break;
-					}
-
-					int minutes = atoi(argument);
-
 					char error_message[MAX_ERROR_LEN];
 
-					pthread_t *tid = start_productivity_mode(minutes, error_message);
+					pthread_t *tid = start_productivity_mode(error_message);
 
 					if (tid == NULL)
 					{
@@ -268,7 +258,11 @@ int main()
 					}
 					break;
 				case END:
-					exit_productivity_mode();
+					char status_error_message[MAX_ERROR_LEN];
+					exit_productivity_mode(status_error_message);
+					if (status_error_message) {
+						printf("%s\n\n", status_error_message);
+					}
 					break;
 				case STATUS:
 					show_status();

@@ -20,13 +20,12 @@ pthread_t pmode_thread_id;
 struct args {
 	bool productivity_mode_running;
 	time_t productivity_mode_start_time;
-	int productivity_mode_duration;
 };
 
-struct args pma = {false, (time_t)0, 0};
+struct args pma = {false, (time_t)0};
 struct args *pmode_args = &pma;
 
-pthread_t *start_productivity_mode(int minutes, char *error_message) {
+pthread_t *start_productivity_mode(char *error_message) {
 	/*
 	 * pmode_args is null on the first time the productivity mode is started.
 	 * In that case the memory needs to be allocated.
@@ -86,8 +85,7 @@ pthread_t *start_productivity_mode(int minutes, char *error_message) {
 	 * Thus the user has to enter the passwort again
 	 * when executing the next sudo command.
 	 */
-	int error = system("sudo -k");
-	if (error == -1) {
+	if (!reset_sudo_timestamp()) {
 		strcpy(error_message, "Sudo timestamp could not be reset.");
 		return NULL;
 	}
@@ -97,9 +95,6 @@ pthread_t *start_productivity_mode(int minutes, char *error_message) {
 	 * but are already running.
 	 */
 	kill_blocked_processes();
-	
-	/* Set the productivity mode's duration in seconds. */
-	pmode_args->productivity_mode_duration = minutes * 60;
 	
 	/* Start the productivity mode thread. */
 	if (pthread_create(&pmode_thread_id, NULL, pmode_thread, (void *)pmode_args) != 0) {
@@ -137,17 +132,6 @@ void *pmode_thread(void *input) {
 				kill_blocked_processes();
 			}
 		}
-
-		/* Check if the productivity mode's duration is over. */
-		time(&now);
-		if (difftime(now, thread_args->productivity_mode_start_time) > thread_args->productivity_mode_duration) {
-			thread_args->productivity_mode_running = false;
-		}
-	}
-	
-	/* Clean-up by unblocking the domains. */
-	if (!unblock_domains()) {
-		printf("Unblocking domains failed.");
 	}
 }
 
@@ -169,9 +153,21 @@ void kill_blocked_processes() {
 	system("pkill -15 mahjongg");
 }
 
-void exit_productivity_mode() {
-	if (pmode_args != NULL) {
+void exit_productivity_mode(char *error_message) {
+	if (pmode_args == NULL || !pmode_args->productivity_mode_running) {
+		strcpy(error_message, "The productivity mode is not running.");
+	} else {
 		pmode_args->productivity_mode_running = false;
+		
+		/* Clean-up by unblocking the domains. */
+		if (unblock_domains()) {
+			strcpy(error_message, "");
+		} else {
+			strcpy(error_message, "The productivity mode was ended but unblocking the domains failed.");
+		}
+		
+		/* Force the user to enter their password again next time. */
+		reset_sudo_timestamp();
 	}
 }
 
@@ -179,17 +175,9 @@ void show_status() {
 	if (pmode_args != NULL && pmode_args->productivity_mode_running) {
 		char time_str[50];
 		strftime(time_str, 50, "%Y-%m-%d %H:%M", localtime(&pmode_args->productivity_mode_start_time));
-		
-		time_t now;
-		time(&now);
-		
-		int passed_time = (int)difftime(now, pmode_args->productivity_mode_start_time);
-		int remaining_time = pmode_args->productivity_mode_duration - passed_time;
-		
 	
 		printf("Productivity mode running: yes\n");
 		printf("Started at: %s\n", time_str);
-		printf("Remaining time: %d min %d seconds\n", remaining_time / 60, remaining_time % 60);
 	} else {
 		printf("Productivity mode running: no\n");
 	}
@@ -211,4 +199,7 @@ bool unblock_domains() {
 	return system("sudo ./proshdom unblock") == 0;
 }
 
+bool reset_sudo_timestamp() {
+	return system("sudo -k") != -1;
+}
 
