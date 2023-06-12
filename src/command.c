@@ -190,8 +190,6 @@ bool block_domains() {
 			break;
 		}
 	}
-	
-	printf("%s\n", command);
 
 	/*
 	 * Blocking domains needs root permissions.
