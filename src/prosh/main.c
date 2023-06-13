@@ -186,10 +186,12 @@ void list_directory(char *argument)
 	{
 		printf("Directory of %s\n\n", argument);
 
+		int result_code_copy = result_code;
+
 		while (result_code--)
 		{
 			if (result_code > 1)
-				printf("%d. %s\n", result_code - 1, list_of_files[result_code]->d_name);
+				printf("%d. %s\n", result_code_copy - result_code, list_of_files[result_code]->d_name);
 			free(list_of_files[result_code]);
 		}
 
