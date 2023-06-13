@@ -44,16 +44,13 @@ Currently there are a lot of discussions going on about the effects of social me
 
 The question that escapes many is how does one prevent procrastination? And in addition to that, what is the level at which procrastination becomes a problem? Of course, no one can maintain focus permanently, nor would anyone find this desirable. To mitigate the problem caused by procrastination we also had to ask in what ways we procrastinate. 
 
-The goal of this project was to create a custom shell, which can prohibit the user getting distracted by social media sites, games, etcetera. Our approach was to (in a brute-force fashion) simply disallow the user from connecting to sites and starting processes we consider not pertinent to work on their computer. 
-
+The goal of this project was to create a custom shell which can prohibit the user getting distracted by social media sites, games, etc. Our approach was to (in a brute-force fashion) simply disallow the user from connecting to sites and starting processes we consider not pertinent to work on their computer. 
 
 \section{Background}
 
 A shell is practically an interface to an interface. User inputs to system calls to OS. The main purpose of a shell is to parse user inputs and execute corresponding system calls. As such, the relevant technologies to the project are functions that can take user input and parse it and system calls for purposes like changing directory or executing files.
 
-\section{The Shell}
-
-\subsection{Implementation}
+\section{Implementation}
 
 Firstly, a brief overview of the shell. The core of the shell is a while loop, which takes user input and returns the appropriate command ID. A switch statement is then used to decide what is the appropriate action to be taken. We classified commands into 4 categories: changing directory, listing files in a directory, file execution, and productivity mode related commands. There are a further 6 categories dedicated to handling productivity mode commands: start/end productivity mode, show status of the productivity mode, and adding/removing/listing processes/domains to be blocked during productivity mode. Domains are blocked using the /etc/hosts file and processes are blocked using pkill.
 
@@ -63,14 +60,33 @@ Our implementation of the change directory and list files in directory functiona
 
 The last general shell function is the execution of files. If a user inputs something not defined by us then we attempt to execute their input using the execvp system call. Arguments are passed by constructing an array of arguments with strtok as described above. Since we wish to retain control even after the file has finished executing, we must execute this file in another task. We then wait for this task and after it has finished we continue with the main loop.
 
-\subsection{Setup}
+\section{Result}
 
-To install prosh, two executables are needed: \textit{prosh} and \textit{proshdom}. They have to be placed inside the same directory. Afterwards, prosh can be started using the terminal.
+We developed two executables: \textit{prosh} and \textit{proshdom}. While \textit{prosh} contains the basic shell as well as most of the commands, \textit{proshdom} executes functions which modify the \texttt{/etc/hosts} file. 
+
+\subsection{Shell Setup}
+
+Both \textit{prosh} and \textit{proshdom} are needed to run the shell and they have to be placed inside the same directory. Afterwards, prosh can be started using the terminal.
 \begin{lstlisting}[numbers=none]
 ./prosh
 \end{lstlisting}
 
-\subsection{Configuration}
+To get yourself started, list all available commands.
+\begin{lstlisting}[numbers=none]
+help
+\end{lstlisting}
+
+To start the productivity mode, use the following command.
+\begin{lstlisting}[numbers=none]
+prod start
+\end{lstlisting}
+
+Be sure to end it before you exit the shell to reset your \texttt{/etc/hosts} file.
+\begin{lstlisting}[numbers=none]
+prod end
+\end{lstlisting}
+
+\subsection{Productivity Mode Configuration}
 
 prosh provides a default blacklist for domains and processes that are blocked while the productivity mode is running but it is possible to add and remove entries.
 
@@ -86,11 +102,17 @@ prod remove domain wikipedia.org
 
 Replace \texttt{domain} with \texttt{process} for processes.
 
-\section{Results}
-
 \section{Discussion}
 
+In April, when we wrote the project proposal about our shell, we had one executable in mind. Now, at the end of our project, the productivity mode only works with two combined: \textit{prosh} and \textit{proshdom}. The reason for this inconvenience is the editing of the \texttt{/etc/hosts} file that needs root permissions. Those can either be obtained by executing the  \texttt{sudo} command or by using \texttt{setuid} flags. Sadly, we did not manage to use the latter, so had to call \texttt{sudo}. However, we figured that starting our whole shell with \texttt{sudo} is not a good idea because it enables users to execute any command with root permissions. We therefore had to exclude all functions which modified \texttt{/etc/hosts} but we still wanted it to feel like a part of the shell. Hence, we created a command that calls the \texttt{sudo ./proshdom} in the background.
+
+Technically speaking, the blocking of domains is therefore not part of our shell because we had to move it into a separate executable. We therefore failed to create a shell that blocks domains and instead created a shell that calls a program which handles it.
+
+On the other hand, we succeeded in creating a shell including a working productivity mode which blocks processes. As long as the blacklist contains the right process name, the user cannot open it.
+
 \section{Conclusion}
+
+As stated in the introduction, our approach of preventing users from getting distracted was to block domains and processes. ...
 
 \section{Lessons learned}
 \subsection{Petr Sabovčik}
@@ -117,6 +139,10 @@ Apart from the standard C header files we have used to following libraries.
 
 \section{Appendix}
 
+\subsection{Separation of Tasks}
+
+While we reviewed, discussed and improved the code together, we had a clear separation of responsibility. Petr Sabovčik worked on the files \textit{main.c} and \textit{blacklist\_manager.c}. He created the shell with command line input processing and process execution. Pascal Wohlwender on the other hand worked on \textit{productivity\_mode.c}, the header files and the proshdom executable. He created the productivity mode with process and domain blocking.
+
 \subsection{Declaration of Independent Authorship}
 
 We attest with our individual signatures that we have written this report independently and without outside
@@ -125,12 +151,10 @@ respect. All sources that have been quoted or paraphrased have been marked accor
 Additionally, we affirm that any text passages written with the help of AI-supported technology are marked as
 such, including a reference to the AI-supported program used.
 This report may be checked for plagiarism and use of AI-supported technology using the appropriate software.
-We understand that unethical conduct may lead to a grade of 1 or “fail” or expulsion from the study program.
+We understand that unethical conduct may lead to a grade of 1 or “fail” or expulsion from the study program.\footnote{Legal Services, University of Basel, April 2023}
 
-Source: Legal Services, University of Basel, April 2023
-
-\subsection{Separation of tasks}
-
-While we reviewed, discussed and improved the code together, we had a clear separation of responsibility. Petr Sabovčik worked on the files \textit{main.c} and \textit{manager.c}. He created the shell with command line input processing and process execution. Pascal Wohlwender on the other hand worked on \textit{command.c}, the header files and the proshdom executable. He created the productivity mode with process and domain blocking.
+\begin{flushright}
+Petr Sabovčik and Pascal Wohlwender, June 2023
+\end{flushright}
 
 \end{document}
