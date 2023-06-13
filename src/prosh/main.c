@@ -184,7 +184,7 @@ void list_directory(char *argument)
 	}
 	else
 	{
-		printf("\nDirectory of %s\n\n", argument);
+		printf("Directory of %s\n\n", argument);
 
 		while (result_code--)
 		{
