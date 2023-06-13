@@ -108,11 +108,15 @@ In April, when we wrote the project proposal about our shell, we had one executa
 
 Technically speaking, the blocking of domains is therefore not part of our shell because we had to move it into a separate executable. We therefore failed to create a shell that blocks domains and instead created a shell that calls a program which handles it.
 
-On the other hand, we succeeded in creating a shell including a working productivity mode which blocks processes. As long as the blacklist contains the right process name, the user cannot open it.
+There is another problem with our approach of blocking domains. Subdomains are not automatically included but have to be added separately to the blacklist. For example, if \textit{wikipedia.org} is added, \textit{de.wikipedia.org} can still be opened. This has to do with how the \texttt{/etc/hosts} file works. It does not include subdomains.
 
 \section{Conclusion}
 
-As stated in the introduction, our approach of preventing users from getting distracted was to block domains and processes. ...
+As stated in the introduction, our approach of preventing users from getting distracted was to block domains and processes.
+
+While we have failed to create a reliable way of blocking domains and including that functionality in prosh itself, we succeeded in creating a working productivity mode that blocks processes. As long as the blacklist contains the right process name, the user cannot open it.
+
+If we had found a better way of blocking domains, we could have made a more reliable productivity shell but we learned a lot in the process.
 
 \section{Lessons learned}
 \subsection{Petr Sabovčik}
