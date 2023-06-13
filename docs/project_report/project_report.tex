@@ -4,6 +4,7 @@
 \usepackage{color}
 \usepackage{parskip}
 \usepackage{indentfirst}
+\usepackage{geometry}
 
 \title{Project Report: Custom Shell 'prosh'}
 \date{13 June 2023}
@@ -11,6 +12,7 @@
 
 \setlength{\parindent}{25px}
 \renewcommand{\footnoterule}{\vfill\kern -3pt \hrule width 0.4\columnwidth \kern 2.6pt}
+\geometry{a4paper, portrait, margin=3cm}
 
 \lstset
 {
@@ -49,7 +51,9 @@ The goal of this project was to create a custom shell, which can prohibit the us
 
 A shell is practically an interface to an interface. User inputs to system calls to OS. The main purpose of a shell is to parse user inputs and execute corresponding system calls. As such, the relevant technologies to the project are functions that can take user input and parse it and system calls for purposes like changing directory or executing files.
 
-\section{Implementation, Configuration and Setup}
+\section{The Shell}
+
+\subsection{Implementation}
 
 Firstly, a brief overview of the shell. The core of the shell is a while loop, which takes user input and returns the appropriate command ID. A switch statement is then used to decide what is the appropriate action to be taken. We classified commands into 4 categories: changing directory, listing files in a directory, file execution, and productivity mode related commands. There are a further 6 categories dedicated to handling productivity mode commands: start/end productivity mode, show status of the productivity mode, and adding/removing/listing processes/domains to be blocked during productivity mode. Domains are blocked using the /etc/hosts file and processes are blocked using pkill.
 
@@ -59,12 +63,28 @@ Our implementation of the change directory and list files in directory functiona
 
 The last general shell function is the execution of files. If a user inputs something not defined by us then we attempt to execute their input using the execvp system call. Arguments are passed by constructing an array of arguments with strtok as described above. Since we wish to retain control even after the file has finished executing, we must execute this file in another task. We then wait for this task and after it has finished we continue with the main loop.
 
+\subsection{Setup}
 
-\begin{lstlisting}[firstnumber=10]
-Use this for code
+To install prosh, two executables are needed: \textit{prosh} and \textit{proshdom}. They have to be placed inside the same directory. Afterwards, prosh can be started using the terminal.
+\begin{lstlisting}[numbers=none]
+./prosh
 \end{lstlisting}
 
-\section{Configuration}
+\subsection{Configuration}
+
+prosh provides a default blacklist for domains and processes that are blocked while the productivity mode is running but it is possible to add and remove entries.
+
+Use the following command to add \textit{wikipedia.org} to the blacklist.
+\begin{lstlisting}[numbers=none]
+prod add domain wikipedia.org
+\end{lstlisting}
+
+To remove it, execute the following command.
+\begin{lstlisting}[numbers=none]
+prod remove domain wikipedia.org
+\end{lstlisting}
+
+Replace \texttt{domain} with \texttt{process} for processes.
 
 \section{Results}
 
