@@ -1,6 +1,6 @@
 /* Include guard to prevent code from being included twice. */
-#ifndef COMMAND
-#define COMMAND
+#ifndef PMODE
+#define PMODE
 
 /*
  * Starts the productivity mode by creating a new thread.

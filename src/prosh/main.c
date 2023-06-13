@@ -15,9 +15,9 @@
 #include <X11/Xutil.h>
 #include <X11/Xos.h>
 #include "header.h"
-#include "manager.c"
-#include "command.h"
-#include "command.c"
+#include "blacklist_manager.c"
+#include "productivity_mode.h"
+#include "productivity_mode.c"
 
 // compile command needs -lreadline and -lX11 flag (gcc main.c -lreadline -lX11)
 
