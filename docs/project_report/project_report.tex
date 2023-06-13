@@ -5,6 +5,7 @@
 \usepackage{parskip}
 \usepackage{indentfirst}
 \usepackage{geometry}
+\usepackage{graphicx}
 
 \title{Project Report: Custom Shell 'prosh'}
 \date{13 June 2023}
@@ -13,6 +14,7 @@
 \setlength{\parindent}{25px}
 \renewcommand{\footnoterule}{\vfill\kern -3pt \hrule width 0.4\columnwidth \kern 2.6pt}
 \geometry{a4paper, portrait, margin=3cm}
+\graphicspath{ {./images/} }
 
 \lstset
 {
@@ -31,12 +33,26 @@
 \begin{document}
 
 \begin{titlepage}
-	\maketitle
-	Design coming soon...
+	\begin{center}
+		\includegraphics[width=0.15\textwidth]{uni_basel_logo.png}\par
+		\vfill
+		\huge \textbf{prosh: The Productivity Shell}\par
+		\Large A custom shell with pomodoro functionality
+		\vfill
+		\large Petr Sabovčik\\Pascal Wohlwender\par
+		\vspace{3cm}
+		\normalsize
+		Project Report\par
+		Operating Systems Course\\
+		Spring 2023
+	\end{center}
+	\thispagestyle{empty}
 \end{titlepage}
 
 \tableofcontents
+\thispagestyle{empty}
 \pagebreak
+\pagenumbering{arabic}
 
 \section{Introduction}
 
