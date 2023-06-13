@@ -30,7 +30,8 @@ enum Commands
 	CD,
 	LS,
 	EXEC,
-	PROD
+	PROD,
+	HELP
 };
 
 enum ProshCommands
@@ -78,6 +79,18 @@ void print_welcome_message()
 			return;
 		}
 	}
+}
+
+void print_help()
+{
+	printf("cd\t\tChange directory\n");
+	printf("ls\t\tList files in directory\n");
+	printf("prod start\tStart productivity mode\n");
+	printf("prod end\tEnd productivity mode\n");
+	printf("prod status\tShow current productivity mode status\n");
+	printf("prod add\tAdd domain or process to blacklist\n");
+	printf("prod remove\tRemove domain or process from blacklist\n");
+	printf("prod list\tList blacklist\n\n");
 }
 
 int get_prosh_command_id()
@@ -129,6 +142,10 @@ int get_command_id(char *command_string)
 	else if (strcmp(command, "prod") == 0)
 	{
 		return PROD;
+	}
+	else if (strcmp(command, "help") == 0)
+	{
+		return HELP;
 	}
 	else
 	{
@@ -252,6 +269,9 @@ int main()
 				{
 					list_directory(argument);
 				}
+				break;
+			case HELP:
+				print_help();
 				break;
 			case PROD:
 
@@ -431,3 +451,4 @@ int main()
 		}
 	}
 }
+
