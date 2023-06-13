@@ -9,8 +9,8 @@ Afterwards, you can run prosh ('./prosh') and use the 'help' command to get your
 
 ## Productivity Mode
 
-Start the productivity mode with 'prod start'.
-End the productivity mode with 'prod end'.
+* Start the productivity mode with 'prod start'.
+* End the productivity mode with 'prod end'.
 
 ## Important Note
 
